@@ -24,19 +24,6 @@ class ManualFixedPointOverride:
     target_y: float
 
 
-def _identity_basis_override(
-    legacy_key: int,
-    map_id: int,
-    coord_ui_map_id: int,
-) -> ManualLegacyBasisOverride:
-    return ManualLegacyBasisOverride(
-        legacy_key=legacy_key,
-        map_id=map_id,
-        source_coord_ui_map_id=coord_ui_map_id,
-        target_coord_ui_map_id=coord_ui_map_id,
-    )
-
-
 MANUAL_LEGACY_KEY_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
     "classic": {
         7307: 1583,
@@ -46,6 +33,230 @@ MANUAL_LEGACY_KEY_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
     },
     "wotlk": {
         7307: 1583,
+    },
+}
+
+
+MANUAL_FAKE_UI_MAP_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
+    "wotlk": {
+        # Verified fake floor/sub-map keys. The builder resolves the shared
+        # instance MapID from the DBC and keeps the exact UiMapID here, which
+        # is the part that determines the floor/sub-level.
+        # Questie: Blackrock Depths - Shadowforge City
+        # UiMap DBC: Blackrock Depths
+        10002: 243,
+        # Questie: The Oculus - Band of Acceleration
+        # UiMap DBC: The Oculus
+        10047: 144,
+        # Questie: The Oculus - Band of Transmutation
+        # UiMap DBC: The Oculus
+        10048: 145,
+        # Questie: The Oculus - Band of Alignment
+        # UiMap DBC: The Oculus
+        10049: 146,
+        # Questie: Ulduar - The Descent of Madness
+        # UiMap DBC: Ulduar
+        10050: 150,
+        # Questie: Ulduar - The Spark of Imagination
+        # UiMap DBC: Ulduar
+        10051: 151,
+        # Questie: Ulduar - The Inner Sanctum of Ulduar
+        # UiMap DBC: Ulduar
+        10052: 149,
+        # Questie: Utgarde Pinnacle - Lower Level
+        # UiMap DBC: Utgarde Pinnacle
+        10053: 136,
+        # Questie: Halls of Lightning - The Terrestrial Watchtower
+        # UiMap DBC: Halls of Lightning
+        10054: 139,
+        # Questie: Azjol-Nerub - The Brood Pit
+        # UiMap DBC: Azjol-Nerub
+        10055: 157,
+        # Questie: Azjol-Nerub - Hadronox's Lair
+        # UiMap DBC: Azjol-Nerub
+        10056: 158,
+        # Questie: Utgarde Keep - Middle Level
+        # UiMap DBC: Utgarde Keep
+        10057: 134,
+        # Questie: Utgarde Keep - Upper Level
+        # UiMap DBC: Utgarde Keep
+        10058: 135,
+        # Questie: The Culling of Stratholme - City
+        # UiMap DBC: The Culling of Stratholme
+        10059: 131,
+        # Questie: Drak'Tharon Keep - Upper Level
+        # UiMap DBC: Drak'Tharon Keep
+        10060: 161,
+        # Questie: Gundrak - Lower Level
+        # UiMap DBC: Gundrak
+        10061: 153,
+        # Questie: Naxxramas - Construct Quarter
+        # UiMap DBC: Naxxramas
+        10062: 162,
+        # Questie: Naxxramas - Arachnid Quarter
+        # UiMap DBC: Naxxramas
+        10063: 163,
+        # Questie: Naxxramas - Military Quarter
+        # UiMap DBC: Naxxramas
+        10064: 164,
+        # Questie: Naxxramas - Plague Quarter
+        # UiMap DBC: Naxxramas
+        10065: 165,
+        # Questie: Naxxramas - Frostwyrm Lair
+        # UiMap DBC: Naxxramas
+        10066: 167,
+        # Questie: Icecrown Citadel - Rampart of Skulls
+        # UiMap DBC: Icecrown Citadel
+        10067: 187,
+        # Questie: Icecrown Citadel - Deathbringer's Rise
+        # UiMap DBC: Icecrown Citadel
+        10068: 188,
+        # Questie: Icecrown Citadel - Sindragosa
+        # UiMap DBC: Icecrown Citadel
+        10069: 189,
+        # Questie: Icecrown Citadel - Upper Spire
+        # UiMap DBC: Icecrown Citadel
+        10070: 190,
+        # Questie: Icecrown Citadel - Queen Lana'thel
+        # UiMap DBC: Icecrown Citadel
+        10071: 191,
+        # Questie: Icecrown Citadel - The Frozen Throne
+        # UiMap DBC: Icecrown Citadel
+        10072: 192,
+    },
+    "cata": {
+        # Questie-authored fake floor/sub-map keys. The builder resolves these
+        # to the verified UiMapID family in the Cata DBC and emits a normal
+        # identity basis record on the shared instance MapID.
+        # Questie: Maraudon - Zaetar's Grave
+        # UiMap DBC: Maraudon
+        10000: 281,
+        # Questie: Stratholme - The Gauntlet
+        # UiMap DBC: Stratholme
+        10001: 318,
+        # Questie: Blackrock Depths - Shadowforge City
+        # UiMap DBC: Blackrock Depths
+        10002: 243,
+        # Questie: Blackrock Spire - Tazz'Alor
+        # UiMap DBC: Blackrock Spire
+        10003: 250,
+        # Questie: Blackrock Spire - Hordemar City
+        # UiMap DBC: Blackrock Spire
+        10005: 252,
+        # Questie: Blackrock Spire - Chamber of Battle
+        # UiMap DBC: Blackrock Spire
+        10007: 255,
+        # Questie: Scarlet Monastery - Library
+        # UiMap DBC: Scarlet Monastery
+        10008: 303,
+        # Questie: Scarlet Monastery - Armory
+        # UiMap DBC: Scarlet Monastery
+        10009: 304,
+        # Questie: Scarlet Monastery - Cathedral
+        # UiMap DBC: Scarlet Monastery
+        10010: 305,
+        # Questie: Scholomance - Chamber of Summoning
+        # UiMap DBC: ScholomanceOLD
+        10011: 307,
+        # Questie: Scholomance - The Upper Study
+        # UiMap DBC: ScholomanceOLD
+        10012: 308,
+        # Questie: Scholomance - Headmaster's Study
+        # UiMap DBC: ScholomanceOLD
+        10013: 309,
+        # Questie: Shadowfang Keep - Dining Hall
+        # UiMap DBC: Shadowfang Keep
+        10014: 311,
+        # Questie: Shadowfang Keep - Lower Observatory
+        # UiMap DBC: Shadowfang Keep
+        10016: 313,
+        # Questie: Shadowfang Keep - Lord Godfrey's Chamber
+        # UiMap DBC: Shadowfang Keep
+        10018: 315,
+        # Questie: Shadowfang Keep - The Wall Walk
+        # UiMap DBC: Shadowfang Keep
+        10019: 316,
+        # Questie: Blackfathom Deeps - Moonshrine Sanctum
+        # UiMap DBC: Blackfathom Deeps
+        10020: 222,
+        # Questie: Blackfathom Deeps - The Forgotten Pool
+        # UiMap DBC: Blackfathom Deeps
+        10021: 223,
+        # Questie: Dire Maul - Gordok Commons
+        # UiMap DBC: Dire Maul
+        10022: 235,
+        # Questie: Dire Maul - Capital Gardens
+        # UiMap DBC: Dire Maul
+        10023: 236,
+        # Questie: Dire Maul - Court of the Highborne
+        # UiMap DBC: Dire Maul
+        10024: 237,
+        # Questie: Dire Maul - Prison of Immol'Thar
+        # UiMap DBC: Dire Maul
+        10025: 238,
+        # Questie: Dire Maul - Warpwood Quarter
+        # UiMap DBC: Dire Maul
+        10026: 239,
+        # Questie: Dire Maul - The Shrine of Eldretharr
+        # UiMap DBC: Dire Maul
+        10027: 240,
+        # Questie: Magisters' Terrace - Grand Magister's Asylum
+        # UiMap DBC: Magisters' Terrace
+        10028: 348,
+        # Questie: The Deadmines - Ironclad Cove
+        # UiMap DBC: The Deadmines
+        10029: 292,
+        # Questie: Gnomeregan - The Dormitory
+        # UiMap DBC: Gnomeregan
+        10030: 227,
+        # Questie: Gnomeregan - Launch Bay
+        # UiMap DBC: Gnomeregan
+        10031: 228,
+        # Questie: Gnomeregan - Tinkers' Court
+        # UiMap DBC: Gnomeregan
+        10032: 229,
+        # Questie: Uldaman - Khaz'Goroth's Seat
+        # UiMap DBC: Uldaman
+        10033: 231,
+        # Questie: Hour of Twilight - Wyrmrest Temple
+        # UiMap DBC: Hour of Twilight
+        10039: 400,
+        # Questie: Ahn'Qiraj - Vault of C'Thun
+        # UiMap DBC: Ahn'Qiraj
+        10041: 321,
+        # Questie: Sethekk Halls - Halls of Mourning
+        # UiMap DBC: Sethekk Halls
+        10042: 259,
+        # Questie: Auchenai Crypts - Bridge of Souls
+        # UiMap DBC: Auchenai Crypts
+        10043: 257,
+        # Questie: The Mechanar - Calculation Chamber
+        # UiMap DBC: The Mechanar
+        10044: 268,
+        # Questie: The Arcatraz - Stasis Block: Maximus
+        # UiMap DBC: The Arcatraz
+        10045: 270,
+        # Questie: The Arcatraz - Containment Core
+        # UiMap DBC: The Arcatraz
+        10046: 271,
+        # Questie: Karazhan - Servant's Quarters
+        # UiMap DBC: Karazhan
+        10102: 350,
+        # Questie: Karazhan - The Guest Chambers
+        # UiMap DBC: Karazhan
+        10105: 353,
+        # Questie: Karazhan - Master's Terrace
+        # UiMap DBC: Karazhan
+        10107: 355,
+        # Questie: Karazhan - The Menagerie
+        # UiMap DBC: Karazhan
+        10110: 358,
+        # Questie: Karazhan - Guardian's Library
+        # UiMap DBC: Karazhan
+        10111: 359,
+        # Questie: Karazhan - Netherspace
+        # UiMap DBC: Karazhan
+        10118: 366,
     },
 }
 
@@ -94,36 +305,6 @@ MANUAL_LEGACY_BASIS_OVERRIDES_BY_FLAVOR: dict[str, dict[int, ManualLegacyBasisOv
             source_coord_ui_map_id=235,
             target_coord_ui_map_id=235,
         ),
-        # These are Questie-authored fake legacy keys for specific instance
-        # floors/sub-maps. We map them directly to the verified UiMapID on the
-        # shared instance MapID and preserve XY as identity.
-        10002: _identity_basis_override(10002, 230, 243),
-        10047: _identity_basis_override(10047, 578, 144),
-        10048: _identity_basis_override(10048, 578, 145),
-        10049: _identity_basis_override(10049, 578, 146),
-        10050: _identity_basis_override(10050, 603, 150),
-        10051: _identity_basis_override(10051, 603, 151),
-        10052: _identity_basis_override(10052, 603, 149),
-        10053: _identity_basis_override(10053, 575, 136),
-        10054: _identity_basis_override(10054, 602, 139),
-        10055: _identity_basis_override(10055, 601, 157),
-        10056: _identity_basis_override(10056, 601, 158),
-        10057: _identity_basis_override(10057, 574, 134),
-        10058: _identity_basis_override(10058, 574, 135),
-        10059: _identity_basis_override(10059, 595, 131),
-        10060: _identity_basis_override(10060, 600, 161),
-        10061: _identity_basis_override(10061, 604, 153),
-        10062: _identity_basis_override(10062, 533, 162),
-        10063: _identity_basis_override(10063, 533, 163),
-        10064: _identity_basis_override(10064, 533, 164),
-        10065: _identity_basis_override(10065, 533, 165),
-        10066: _identity_basis_override(10066, 533, 167),
-        10067: _identity_basis_override(10067, 631, 187),
-        10068: _identity_basis_override(10068, 631, 188),
-        10069: _identity_basis_override(10069, 631, 189),
-        10070: _identity_basis_override(10070, 631, 190),
-        10071: _identity_basis_override(10071, 631, 191),
-        10072: _identity_basis_override(10072, 631, 192),
     },
 }
 

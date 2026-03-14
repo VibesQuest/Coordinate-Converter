@@ -14,8 +14,8 @@ EXPANSION_TO_VERSION = {
     "sod": "v1",
     "tbc": "v2",
     "wotlk": "v3",
-    "cata": "v3",
-    "mop": "v3",
+    "cata": "v4",
+    "mop": "v5",
 }
 
 COORD_FIELDS = ("spawns", "triggerEnd", "extraObjectives", "waypoints")

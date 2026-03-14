@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from .manual_overrides import (
+    MANUAL_FAKE_UI_MAP_ALIASES_BY_FLAVOR,
     MANUAL_LEGACY_BASIS_OVERRIDES_BY_FLAVOR,
     MANUAL_LEGACY_KEY_ALIASES_BY_FLAVOR,
 )
@@ -268,6 +269,7 @@ def _build_legacy_coordinate_bases(
     for record in _build_top_level_map_default_identities(area_rows, map_defaults_by_map_id):
         records_by_key.setdefault(int(record.legacy_key), record)
 
+    _apply_manual_fake_ui_map_aliases(flavor, conn, records_by_key)
     _apply_manual_basis_overrides(flavor, records_by_key)
     _add_inherited_parent_legacy_bases(records_by_key, area_rows)
     _apply_manual_key_aliases(flavor, records_by_key)
@@ -415,6 +417,22 @@ def _apply_manual_basis_overrides(
         )
 
 
+def _apply_manual_fake_ui_map_aliases(
+    flavor: str,
+    conn: sqlite3.Connection,
+    records_by_key: dict[int, LegacyCoordinateBasisRecord],
+) -> None:
+    for legacy_key, ui_map_id in MANUAL_FAKE_UI_MAP_ALIASES_BY_FLAVOR.get(flavor, {}).items():
+        map_id = _lookup_map_id_for_ui_map(conn, int(ui_map_id))
+        records_by_key[int(legacy_key)] = _make_legacy_basis_record(
+            legacy_key=int(legacy_key),
+            map_id=int(map_id),
+            source_coord_ui_map_id=int(ui_map_id),
+            target_coord_ui_map_id=int(ui_map_id),
+            source_kind=LEGACY_SOURCE_KIND_CONTAINING_MAP_BOUNDS,
+        )
+
+
 def _apply_manual_key_aliases(
     flavor: str,
     records_by_key: dict[int, LegacyCoordinateBasisRecord],
@@ -434,6 +452,21 @@ def _apply_manual_key_aliases(
             source_kind=str(canonical.source_kind),
             default_ui_map_hint_id=canonical.default_ui_map_hint_id,
         )
+
+
+def _lookup_map_id_for_ui_map(conn: sqlite3.Connection, ui_map_id: int) -> int:
+    rows = list(
+        conn.execute(
+            'SELECT DISTINCT "MapID" FROM ui_map_assignment WHERE "UiMapID"=? AND "MapID" IS NOT NULL',
+            (int(ui_map_id),),
+        )
+    )
+    map_ids = sorted({int(row["MapID"]) for row in rows})
+    if len(map_ids) != 1:
+        raise ValueError(
+            f"Expected exactly one MapID for fake UiMapID={ui_map_id}, found {map_ids}"
+        )
+    return int(map_ids[0])
 
 
 def _add_inherited_parent_legacy_bases(

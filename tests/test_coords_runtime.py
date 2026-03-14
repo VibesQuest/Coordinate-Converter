@@ -153,6 +153,8 @@ def test_fake_classic_continent_keys_map_to_continent_defaults(
         ("v1", 70.58, 96.19),
         ("v2", 70.58, 96.19),
         ("v3", 77.11, 88.84),
+        ("v4", 77.11, 88.84),
+        ("v5", 77.11, 88.84),
     ),
 )
 def test_fake_world_map_key_maps_to_hardcoded_per_version_point(
@@ -221,4 +223,30 @@ def test_fake_wotlk_floor_keys_map_to_specific_instance_ui_maps(
     if point == (-1.0, -1.0):
         assert converted == {map_id: {0: [[-1.0, -1.0]]}}
         return
+    assert converted == {map_id: {coord_ui_map_id: [[point[0], point[1]]]}}
+
+
+@pytest.mark.parametrize(
+    ("legacy_key", "map_id", "coord_ui_map_id", "point"),
+    (
+        (10000, 349, 281, (24.34, 78.34)),
+        (10002, 230, 243, (34.5, 68.91)),
+        (10009, 189, 304, (78.6, 10.7)),
+        (10020, 48, 222, (38.09, 48.3)),
+        (10022, 429, 235, (31.83, 25.93)),
+        (10039, 940, 400, (43.46, 27.33)),
+        (10118, 532, 366, (48.83, 68.81)),
+    ),
+)
+def test_fake_cata_floor_keys_map_to_specific_instance_ui_maps(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+    point: tuple[float, float],
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes["v4"]["converter"]
+    pack = coordinate_runtimes["v4"]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {legacy_key: [[point[0], point[1]]]})
     assert converted == {map_id: {coord_ui_map_id: [[point[0], point[1]]]}}

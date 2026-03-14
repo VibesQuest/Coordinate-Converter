@@ -15,7 +15,7 @@ from tests._coords import (
 )
 
 
-SUPPORTED_EXPANSIONS = ("classic", "sod", "tbc", "wotlk")
+SUPPORTED_EXPANSIONS = tuple(EXPANSION_TO_VERSION)
 
 
 @dataclass(frozen=True)

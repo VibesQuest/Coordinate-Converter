@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from tests._coords import EXPANSION_TO_VERSION, ZoneBucketCase, validate_map_buckets
 
 
-SUPPORTED_EXPANSIONS = {"classic", "sod", "tbc", "wotlk"}
+SUPPORTED_EXPANSIONS = {"classic", "sod", "tbc", "wotlk", "cata"}
 KNOWN_UNMAPPED_LEGACY_KEYS = {
     "classic": set(),
     "sod": set(),
