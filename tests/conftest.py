@@ -15,7 +15,16 @@ def repo_root() -> Path:
 
 @pytest.fixture(scope="session")
 def corrections_data(repo_root: Path) -> dict:
-    return json.loads((repo_root / "ui" / "public" / "corrections.json").read_text(encoding="utf-8"))
+    candidates = (
+        repo_root / "ui" / "public" / "corrections.json",
+        repo_root / "tests" / "data" / "corrections.json",
+    )
+    for path in candidates:
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+    raise FileNotFoundError(
+        "No corrections.json found; checked: " + ", ".join(str(path) for path in candidates)
+    )
 
 
 @pytest.fixture(scope="session")
@@ -28,9 +37,28 @@ def portable_runtimes(repo_root: Path) -> dict[str, dict]:
     runtimes: dict[str, dict] = {}
     for version in sorted(set(EXPANSION_TO_VERSION.values())):
         loader_module, converter_module = load_runtime_modules(repo_root, version)
+        load_pack = getattr(
+            loader_module,
+            "load_portable_coordinate_pack",
+            getattr(loader_module, "load_coordinate_pack"),
+        )
         runtimes[version] = {
             "loader": loader_module,
             "converter": converter_module,
-            "pack": loader_module.load_portable_coordinate_pack(repo_root / "portable_coords" / version),
+            "pack": load_pack(_find_pack_dir(repo_root, version)),
         }
     return runtimes
+
+
+def _find_pack_dir(repo_root: Path, version: str) -> Path:
+    candidates = (
+        repo_root / "portable_coords" / version,
+        repo_root / "output" / version,
+    )
+    for path in candidates:
+        if path.exists():
+            return path
+    raise FileNotFoundError(
+        f"No pack directory found for {version}; checked: "
+        + ", ".join(str(path) for path in candidates)
+    )

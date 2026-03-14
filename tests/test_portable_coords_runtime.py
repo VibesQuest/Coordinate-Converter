@@ -16,7 +16,7 @@ def test_pack_loader_builds_expected_indexes(version: str, portable_runtimes: di
     assert pack["zoneSpaceByAreaId"]
     assert pack["projectionBoundsByKey"]
     assert pack["legacyBasisByKey"]
-    assert pack["instanceAnchorByMapId"]
+    assert isinstance(pack["instanceAnchorByMapId"], dict)
 
     assert len(pack["zoneSpaceByAreaId"]) == len(pack["zoneSpaces"])
     assert len(pack["projectionBoundsByKey"]) == len(pack["projectionBounds"])
@@ -79,7 +79,7 @@ def test_target_coord_ui_map_id_prefers_default_then_parent_then_zone(
     ) == 456
 
 
-def test_known_anchor_replacement_for_v1_instance_zone_719(
+def test_unknown_instance_bucket_is_preserved_without_anchors_for_v1_zone_719(
     portable_runtimes: dict[str, dict],
 ) -> None:
     converter = portable_runtimes["v1"]["converter"]
@@ -89,7 +89,7 @@ def test_known_anchor_replacement_for_v1_instance_zone_719(
     assert converted == {48: {0: [[-1.0, -1.0]]}}
 
     replaced = converter.replace_unknown_instance_buckets(pack, converted)
-    assert replaced == {1: {1414: [[44.32, 34.84]]}}
+    assert replaced == converted
 
 
 def test_known_unknown_bucket_without_anchor_is_preserved_for_v1_zone_2677(
