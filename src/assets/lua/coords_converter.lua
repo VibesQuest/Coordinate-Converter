@@ -156,7 +156,7 @@ function M.convert_zone_buckets(pack, zone_buckets, coord_decimals)
     local legacy_basis = pack.legacyBasisByKey[tonumber(zone_area_id)]
     local zone_space = pack.zoneSpaceByAreaId[tonumber(zone_area_id)]
     if legacy_basis == nil and zone_space == nil then
-      error(string.format("No portable coordinate mapping for legacy key=%s", tostring(zone_area_id)), 2)
+      error(string.format("No coordinate mapping for legacy key=%s", tostring(zone_area_id)), 2)
     end
 
     local map_id = legacy_basis and tonumber(legacy_basis.mapId) or tonumber(zone_space.mapId)

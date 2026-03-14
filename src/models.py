@@ -84,7 +84,7 @@ class InstanceAnchorRecord:
 
 
 @dataclass(frozen=True)
-class PortableCoordinatePack:
+class CoordinatePack:
     flavor: str
     schema_version: int
     zone_spaces: tuple[ZoneSpaceRecord, ...]
@@ -96,7 +96,7 @@ class PortableCoordinatePack:
     def __post_init__(self) -> None:
         if self.schema_version != CURRENT_SCHEMA_VERSION:
             raise ValueError(
-                f"Unsupported portable coordinate schemaVersion={self.schema_version}; "
+                f"Unsupported coordinate pack schemaVersion={self.schema_version}; "
                 f"expected {CURRENT_SCHEMA_VERSION}"
             )
         _validate_unique_keys(
@@ -162,14 +162,14 @@ class PortableCoordinatePack:
         }
 
     @classmethod
-    def load(cls, pack_dir: str | Path) -> "PortableCoordinatePack":
+    def load(cls, pack_dir: str | Path) -> "CoordinatePack":
         pack_path = Path(pack_dir)
 
         manifest = _load_json(pack_path / MANIFEST_FILE)
         schema_version = int(manifest["schemaVersion"])
         if schema_version != CURRENT_SCHEMA_VERSION:
             raise ValueError(
-                f"Unsupported portable coordinate schemaVersion={schema_version} in "
+                f"Unsupported coordinate pack schemaVersion={schema_version} in "
                 f"{pack_path / MANIFEST_FILE}; expected {CURRENT_SCHEMA_VERSION}"
             )
         zone_spaces = tuple(

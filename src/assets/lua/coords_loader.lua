@@ -32,7 +32,7 @@ function M.load_coordinate_pack(pack_dir, opts)
   assertf(
     schema_version == CURRENT_SCHEMA_VERSION,
     string.format(
-      "unsupported portable coordinate schemaVersion=%s in %s/%s; expected %d",
+      "unsupported coordinate pack schemaVersion=%s in %s/%s; expected %d",
       tostring(pack.manifest.schemaVersion),
       tostring(pack_dir),
       FILES.manifest,

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tests._portable_coords import EXPANSION_TO_VERSION, iter_zone_bucket_cases, load_runtime_modules
+from tests._coords import EXPANSION_TO_VERSION, iter_zone_bucket_cases, load_runtime_modules
 
 
 @pytest.fixture(scope="session")
@@ -33,28 +33,20 @@ def corrections_cases(corrections_data: dict) -> list:
 
 
 @pytest.fixture(scope="session")
-def portable_runtimes(repo_root: Path) -> dict[str, dict]:
+def coordinate_runtimes(repo_root: Path) -> dict[str, dict]:
     runtimes: dict[str, dict] = {}
     for version in sorted(set(EXPANSION_TO_VERSION.values())):
         loader_module, converter_module = load_runtime_modules(repo_root, version)
-        load_pack = getattr(
-            loader_module,
-            "load_portable_coordinate_pack",
-            getattr(loader_module, "load_coordinate_pack"),
-        )
         runtimes[version] = {
             "loader": loader_module,
             "converter": converter_module,
-            "pack": load_pack(_find_pack_dir(repo_root, version)),
+            "pack": loader_module.load_coordinate_pack(_find_pack_dir(repo_root, version)),
         }
     return runtimes
 
 
 def _find_pack_dir(repo_root: Path, version: str) -> Path:
-    candidates = (
-        repo_root / "portable_coords" / version,
-        repo_root / "output" / version,
-    )
+    candidates = (repo_root / "output" / version,)
     for path in candidates:
         if path.exists():
             return path

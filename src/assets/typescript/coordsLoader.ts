@@ -35,7 +35,7 @@ export async function loadCoordinatePack(packDir: string): Promise<CoordinatePac
   const schemaVersion = Number(pack.manifest.schemaVersion);
   if (schemaVersion !== CURRENT_SCHEMA_VERSION) {
     throw new Error(
-      `Unsupported portable coordinate schemaVersion=${schemaVersion} in ${path.join(packDir, FILES.manifest)}; expected ${CURRENT_SCHEMA_VERSION}`,
+      `Unsupported coordinate pack schemaVersion=${schemaVersion} in ${path.join(packDir, FILES.manifest)}; expected ${CURRENT_SCHEMA_VERSION}`,
     );
   }
 

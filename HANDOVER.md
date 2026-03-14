@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This project is a standalone version of `portable_coords`.
+This project is a standalone coordinate converter.
 
 It is intentionally a **dumb converter**:
 
@@ -70,11 +70,11 @@ New-style map/uiMap buckets:
 - `build-output-packs.sh`
   Builds `v1`, `v2`, and `v3` outputs inside this project.
 - `output/v1`, `output/v2`, `output/v3`
-  Generated portable packs and runtime bundle.
+  Generated packs and runtime bundle.
 
 ## What Was Ported
 
-These parts were copied/adapted from the monorepo `portable_coords` implementation:
+These parts were adapted from the earlier coordinate conversion implementation:
 
 - pack/runtime model
 - reference converter

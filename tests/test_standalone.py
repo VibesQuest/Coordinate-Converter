@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from src.build_pack import build_portable_coordinate_pack
-from src.converter import PortableCoordinateConverter
+from src.build_pack import build_coordinate_pack
+from src.converter import CoordinateConverter
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -14,8 +14,8 @@ DBC_V3 = ROOT / "sources" / "dbc" / "output" / "dbc-source-v3.db"
 
 @pytest.mark.skipif(not DBC_V3.exists(), reason="repo DBC source DB is unavailable")
 def test_wotlk_standalone_pack_handles_known_legacy_keys() -> None:
-    pack = build_portable_coordinate_pack(major_version=3, dbc_db_path=DBC_V3)
-    converter = PortableCoordinateConverter(pack)
+    pack = build_coordinate_pack(major_version=3, dbc_db_path=DBC_V3)
+    converter = CoordinateConverter(pack)
 
     result = converter.convert_zone_buckets(
         {

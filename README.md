@@ -1,8 +1,8 @@
 # Coordinate Converter
 
-Standalone version of `portable_coords` with:
+Standalone coordinate converter with:
 
-- portable JSON pack runtime and converter
+- JSON pack runtime and converter
 - copied Python / TypeScript / Lua runtime assets
 - a minimal DBC-driven metadata builder
 - no dependency on `core-vN.db`
@@ -58,7 +58,7 @@ coordinate-dbc-source \
   --out dbc-source-v3.db
 ```
 
-Build a portable pack from that DBC DB:
+Build a coordinate pack from that DBC DB:
 
 ```bash
 coordinate-converter build-pack \
@@ -78,7 +78,7 @@ coordinate-converter convert-zone-buckets \
 
 ## Notes
 
-- The runtime pack format matches the current stable `portable_coords` contract.
+- The runtime pack format matches the current coordinate-pack contract.
 - `instance_anchors.json` is emitted as an empty list in this standalone version.
 - Manual aliases and basis overrides live in `src/manual_overrides.py`.
 - Generated packs are written under `output/v1`, `v2`, and `v3`.

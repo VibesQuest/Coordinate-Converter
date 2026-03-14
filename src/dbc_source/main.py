@@ -44,7 +44,7 @@ def ensure_csv(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build minimal DBC SQLite source for portable coords.")
+    parser = argparse.ArgumentParser(description="Build minimal DBC SQLite source for coordinate packs.")
     parser.add_argument("--major-version", type=int, required=True, choices=(1, 2, 3))
     parser.add_argument("--build", default=None, help="Specific build version like 3.80.0.66130")
     parser.add_argument("--data-dir", type=Path, required=True)

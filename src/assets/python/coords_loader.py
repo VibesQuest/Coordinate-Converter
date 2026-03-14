@@ -25,7 +25,7 @@ def load_coordinate_pack(pack_dir: str | Path) -> dict[str, Any]:
     schema_version = int(pack["manifest"]["schemaVersion"])
     if schema_version != CURRENT_SCHEMA_VERSION:
         raise ValueError(
-            f"Unsupported portable coordinate schemaVersion={schema_version} in "
+            f"Unsupported coordinate pack schemaVersion={schema_version} in "
             f"{root / FILES['manifest']}; expected {CURRENT_SCHEMA_VERSION}"
         )
 

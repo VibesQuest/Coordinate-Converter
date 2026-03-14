@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .build_pack import build_portable_coordinate_pack
-from .converter import PortableCoordinateConverter
-from .models import PortableCoordinatePack
+from .build_pack import build_coordinate_pack
+from .converter import CoordinateConverter
+from .models import CoordinatePack
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Standalone portable coordinate tools.")
+    parser = argparse.ArgumentParser(description="Standalone coordinate tools.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_pack_parser = subparsers.add_parser("build-pack")
@@ -28,7 +28,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "build-pack":
-        pack = build_portable_coordinate_pack(
+        pack = build_coordinate_pack(
             major_version=args.major_version,
             dbc_db_path=args.dbc_db,
         )
@@ -36,8 +36,8 @@ def main() -> None:
         return
 
     if args.command == "convert-zone-buckets":
-        pack = PortableCoordinatePack.load(args.pack_dir)
-        converter = PortableCoordinateConverter(pack)
+        pack = CoordinatePack.load(args.pack_dir)
+        converter = CoordinateConverter(pack)
         data = _load_int_key_dict(args.input_json)
         result = converter.convert_zone_buckets(data, coord_decimals=args.coord_decimals)
         _dump_json(args.output_json, _stringify_int_keys(result))
@@ -64,4 +64,3 @@ def _dump_json(path: Path, data: Any) -> None:
 
 if __name__ == "__main__":
     main()
-

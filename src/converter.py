@@ -6,7 +6,7 @@ from typing import Mapping, Sequence
 
 from .models import (
     LegacyCoordinateBasisRecord,
-    PortableCoordinatePack,
+    CoordinatePack,
     ProjectionBoundsRecord,
     ZoneSpaceRecord,
 )
@@ -22,10 +22,10 @@ class WorldPoint:
     y: float
 
 
-class PortableCoordinateConverter:
-    """Reference converter that only depends on a portable JSON pack."""
+class CoordinateConverter:
+    """Reference converter that only depends on a coordinate pack."""
 
-    def __init__(self, pack: PortableCoordinatePack):
+    def __init__(self, pack: CoordinatePack):
         self._pack = pack
         self._zone_spaces = pack.zone_space_by_area_id()
         self._projection_bounds = pack.projection_bounds_by_key()
@@ -49,7 +49,7 @@ class PortableCoordinateConverter:
             zone_space = self._zone_spaces.get(int(zone_area_id))
             if legacy_basis is None and zone_space is None:
                 raise KeyError(
-                    f"No portable coordinate mapping for legacy key={zone_area_id}"
+                    f"No coordinate mapping for legacy key={zone_area_id}"
                 )
 
             if legacy_basis is not None:
@@ -105,7 +105,7 @@ class PortableCoordinateConverter:
         self,
         map_buckets: Mapping[int, Mapping[int, Sequence[Sequence[float]]]],
     ) -> dict[int, dict[int, list[list[float | int]]]]:
-        """Replace unresolved `[mapId][0]={{-1,-1}}` buckets with portable anchors."""
+        """Replace unresolved `[mapId][0]={{-1,-1}}` buckets with anchors."""
         result: dict[int, dict[int, list[list[float | int]]]] = defaultdict(
             lambda: defaultdict(list)
         )

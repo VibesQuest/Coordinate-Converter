@@ -13,7 +13,7 @@ from .models import (
     InstanceAnchorRecord,
     LegacyCoordinateBasisRecord,
     MapDefaultRecord,
-    PortableCoordinatePack,
+    CoordinatePack,
     ProjectionBoundsRecord,
     ZoneSpaceRecord,
 )
@@ -40,10 +40,10 @@ LEGACY_SOURCE_KIND_INHERITED_PARENT_BASIS = "inherited_parent_basis"
 LEGACY_SOURCE_KIND_INSTANCE_MAP_ALIAS = "instance_map_alias"
 
 
-def build_portable_coordinate_pack(
+def build_coordinate_pack(
     major_version: int,
     dbc_db_path: str | Path | None = None,
-) -> PortableCoordinatePack:
+) -> CoordinatePack:
     flavor = FLAVOR_BY_MAJOR_VERSION.get(int(major_version))
     if flavor is None:
         raise ValueError(f"Unsupported major version: {major_version}")
@@ -70,7 +70,7 @@ def build_portable_coordinate_pack(
     finally:
         conn.close()
 
-    return PortableCoordinatePack(
+    return CoordinatePack(
         flavor=flavor,
         schema_version=CURRENT_SCHEMA_VERSION,
         zone_spaces=tuple(sorted(zone_spaces, key=lambda row: row.zone_area_id)),
@@ -510,18 +510,18 @@ def _normalize_parent_ui_map_id(parent_ui_map_id: int | None) -> int | None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build standalone portable coordinate packs.")
+    parser = argparse.ArgumentParser(description="Build standalone coordinate packs.")
     parser.add_argument("--major-version", type=int, required=True, choices=(1, 2, 3))
     parser.add_argument("--dbc-db", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
-    pack = build_portable_coordinate_pack(
+    pack = build_coordinate_pack(
         major_version=args.major_version,
         dbc_db_path=args.dbc_db,
     )
     pack.dump(args.output_dir)
-    print(f"Wrote standalone portable coordinate pack to {args.output_dir}")
+    print(f"Wrote standalone coordinate pack to {args.output_dir}")
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ ERROR_CASES: dict[str, dict[str, str]] = {
     "unknown_legacy_key_error": {
         "version": "v3",
         "type": "KeyError",
-        "match": "No portable coordinate mapping for legacy key=999999",
+        "match": "No coordinate mapping for legacy key=999999",
     },
     "malformed_point_error": {
         "version": "v3",
@@ -39,14 +39,14 @@ ERROR_CASES: dict[str, dict[str, str]] = {
 @pytest.mark.parametrize("case_name", sorted(SUCCESS_CASES))
 def test_converter_golden_outputs_match_expected_fixture(
     case_name: str,
-    portable_runtimes: dict[str, dict],
+    coordinate_runtimes: dict[str, dict],
     repo_root: Path,
 ) -> None:
     fixture_dir = repo_root / "tests" / "fixtures" / "converter_golden" / case_name
     input_payload = _normalize_zone_buckets_json(_load_json(fixture_dir / "input.json"))
     expected = _normalize_map_buckets_json(_load_json(fixture_dir / "expected.json"))
 
-    runtime = portable_runtimes[SUCCESS_CASES[case_name]]
+    runtime = coordinate_runtimes[SUCCESS_CASES[case_name]]
     converter = runtime["converter"]
     pack = runtime["pack"]
 
@@ -60,13 +60,13 @@ def test_converter_golden_outputs_match_expected_fixture(
 @pytest.mark.parametrize("case_name", sorted(ERROR_CASES))
 def test_converter_golden_errors_match_expected_behavior(
     case_name: str,
-    portable_runtimes: dict[str, dict],
+    coordinate_runtimes: dict[str, dict],
     repo_root: Path,
 ) -> None:
     fixture_dir = repo_root / "tests" / "fixtures" / "converter_golden" / case_name
     input_payload = _normalize_zone_buckets_json(_load_json(fixture_dir / "input.json"))
     case = ERROR_CASES[case_name]
-    runtime = portable_runtimes[case["version"]]
+    runtime = coordinate_runtimes[case["version"]]
     converter = runtime["converter"]
     pack = runtime["pack"]
 

@@ -21,7 +21,7 @@ export function convertZoneBuckets(
     const legacyBasis = pack.legacyBasisByKey.get(zoneAreaId);
     const zoneSpace = pack.zoneSpaceByAreaId.get(zoneAreaId);
     if (!legacyBasis && !zoneSpace) {
-      throw new Error(`No portable coordinate mapping for legacy key=${zoneAreaId}`);
+      throw new Error(`No coordinate mapping for legacy key=${zoneAreaId}`);
     }
 
     const mapId = legacyBasis ? Number(legacyBasis.mapId) : Number(zoneSpace.mapId);

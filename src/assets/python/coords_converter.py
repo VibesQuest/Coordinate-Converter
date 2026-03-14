@@ -19,7 +19,7 @@ def convert_zone_buckets(
         legacy_basis = pack["legacyBasisByKey"].get(int(zone_area_id))
         zone_space = pack["zoneSpaceByAreaId"].get(int(zone_area_id))
         if legacy_basis is None and zone_space is None:
-            raise KeyError(f"No portable coordinate mapping for legacy key={zone_area_id}")
+            raise KeyError(f"No coordinate mapping for legacy key={zone_area_id}")
 
         if legacy_basis is not None:
             map_id = int(legacy_basis["mapId"])

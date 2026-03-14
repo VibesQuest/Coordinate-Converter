@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests._portable_coords import (
+from tests._coords import (
     COORD_FIELDS,
     EXPANSION_TO_VERSION,
     ZoneBucketCase,
@@ -46,14 +46,14 @@ def test_corpus_zone_buckets_convert_or_fail_by_design(
     expansion: str,
     field: str,
     corrections_cases: list[ZoneBucketCase],
-    portable_runtimes: dict[str, dict],
+    coordinate_runtimes: dict[str, dict],
 ) -> None:
     cases = [case for case in corrections_cases if case.expansion == expansion and case.field == field]
     if not cases:
         pytest.skip(f"No {field} cases for {expansion}")
 
     version = EXPANSION_TO_VERSION[expansion]
-    runtime = portable_runtimes[version]
+    runtime = coordinate_runtimes[version]
     converter = runtime["converter"]
     pack = runtime["pack"]
 

@@ -40,19 +40,12 @@ def load_runtime_modules(repo_root: Path, version: str) -> tuple[ModuleType, Mod
         runtime_dir = _find_runtime_dir(repo_root, version)
         loader_module = _load_module(
             f"coords_loader_{version}",
-            _find_runtime_module_path(runtime_dir, ("portable_coords_loader.py", "coords_loader.py")),
+            runtime_dir / "coords_loader.py",
         )
         converter_module = _load_module(
             f"coords_converter_{version}",
-            _find_runtime_module_path(
-                runtime_dir,
-                ("portable_coords_converter.py", "coords_converter.py"),
-            ),
+            runtime_dir / "coords_converter.py",
         )
-        if not hasattr(loader_module, "load_portable_coordinate_pack") and hasattr(
-            loader_module, "load_coordinate_pack"
-        ):
-            loader_module.load_portable_coordinate_pack = loader_module.load_coordinate_pack
         _RUNTIME_CACHE[cache_key] = (loader_module, converter_module)
     return _RUNTIME_CACHE[cache_key]
 
@@ -259,25 +252,11 @@ def _load_module(module_name: str, module_path: Path) -> ModuleType:
 
 
 def _find_runtime_dir(repo_root: Path, version: str) -> Path:
-    candidates = (
-        repo_root / "portable_coords" / version / "runtime" / "python",
-        repo_root / "output" / version / "runtime" / "python",
-    )
+    candidates = (repo_root / "output" / version / "runtime" / "python",)
     for candidate in candidates:
         if candidate.exists():
             return candidate
     raise FileNotFoundError(
         f"No runtime/python directory found for {version}; checked: "
         + ", ".join(str(candidate) for candidate in candidates)
-    )
-
-
-def _find_runtime_module_path(runtime_dir: Path, filenames: tuple[str, ...]) -> Path:
-    for filename in filenames:
-        path = runtime_dir / filename
-        if path.exists():
-            return path
-    raise FileNotFoundError(
-        f"No runtime module found in {runtime_dir}; checked: "
-        + ", ".join(filenames)
     )
