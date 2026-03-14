@@ -1,0 +1,9 @@
+{
+  "workspace.ignoreDir": [
+    ".vscode",
+    "output",
+    "src/assets/lua"
+  ],
+  "diagnostics.ignoredFiles": "Disable",
+  "diagnostics.enable": false
+}

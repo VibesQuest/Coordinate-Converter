@@ -1,0 +1,10 @@
+.jj
+
+.venv/
+.venv_*/
+**/*.egg-info/
+*.egg-info/
+**/__pycache__/
+dbc-output/
+
+output
