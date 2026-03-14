@@ -24,6 +24,19 @@ class ManualFixedPointOverride:
     target_y: float
 
 
+def _identity_basis_override(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+) -> ManualLegacyBasisOverride:
+    return ManualLegacyBasisOverride(
+        legacy_key=legacy_key,
+        map_id=map_id,
+        source_coord_ui_map_id=coord_ui_map_id,
+        target_coord_ui_map_id=coord_ui_map_id,
+    )
+
+
 MANUAL_LEGACY_KEY_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
     "classic": {
         7307: 1583,
@@ -81,6 +94,36 @@ MANUAL_LEGACY_BASIS_OVERRIDES_BY_FLAVOR: dict[str, dict[int, ManualLegacyBasisOv
             source_coord_ui_map_id=235,
             target_coord_ui_map_id=235,
         ),
+        # These are Questie-authored fake legacy keys for specific instance
+        # floors/sub-maps. We map them directly to the verified UiMapID on the
+        # shared instance MapID and preserve XY as identity.
+        10002: _identity_basis_override(10002, 230, 243),
+        10047: _identity_basis_override(10047, 578, 144),
+        10048: _identity_basis_override(10048, 578, 145),
+        10049: _identity_basis_override(10049, 578, 146),
+        10050: _identity_basis_override(10050, 603, 150),
+        10051: _identity_basis_override(10051, 603, 151),
+        10052: _identity_basis_override(10052, 603, 149),
+        10053: _identity_basis_override(10053, 575, 136),
+        10054: _identity_basis_override(10054, 602, 139),
+        10055: _identity_basis_override(10055, 601, 157),
+        10056: _identity_basis_override(10056, 601, 158),
+        10057: _identity_basis_override(10057, 574, 134),
+        10058: _identity_basis_override(10058, 574, 135),
+        10059: _identity_basis_override(10059, 595, 131),
+        10060: _identity_basis_override(10060, 600, 161),
+        10061: _identity_basis_override(10061, 604, 153),
+        10062: _identity_basis_override(10062, 533, 162),
+        10063: _identity_basis_override(10063, 533, 163),
+        10064: _identity_basis_override(10064, 533, 164),
+        10065: _identity_basis_override(10065, 533, 165),
+        10066: _identity_basis_override(10066, 533, 167),
+        10067: _identity_basis_override(10067, 631, 187),
+        10068: _identity_basis_override(10068, 631, 188),
+        10069: _identity_basis_override(10069, 631, 189),
+        10070: _identity_basis_override(10070, 631, 190),
+        10071: _identity_basis_override(10071, 631, 191),
+        10072: _identity_basis_override(10072, 631, 192),
     },
 }
 

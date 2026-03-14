@@ -175,6 +175,65 @@ Verified working:
 - unresolved instance aliases like `209`, `719`, `796`, `1583`
 - Dire Maul `2557`
 
+## Fake UiMap Alias Research
+
+These are the fake legacy ids from the imported corrections corpus that were
+matched to specific `UiMapID`s before implementation.
+
+How the matching was done:
+
+1. take the fake id and Questie's floor/sub-zone label
+2. map it to the Questie override `UiMapID`
+3. look up that `UiMapID` in `dbc-output/dbc-source-v3.db`
+4. read `ui_map.Name_lang` to confirm the DBC-side parent map name
+
+Useful query:
+
+```sql
+SELECT "ID", "Name_lang"
+FROM ui_map
+WHERE "ID" IN (...);
+```
+
+Important note:
+
+- many of these DBC names are the parent dungeon/raid name, not the specific
+  floor label from Questie
+- that is expected; the fake id is carrying floor/sub-zone meaning that the
+  plain DBC `Name_lang` often does not preserve
+
+### WotLK Fake IDs
+
+| Fake ID | Questie Label | Matched UiMapID | DBC UiMap Name |
+| --- | --- | --- | --- |
+| `10002` | `Blackrock Depths - Shadowforge City` | `243` | `Blackrock Depths` |
+| `10047` | `The Oculus - Band of Acceleration` | `144` | `The Oculus` |
+| `10048` | `The Oculus - Band of Transmutation` | `145` | `The Oculus` |
+| `10049` | `The Oculus - Band of Alignment` | `146` | `The Oculus` |
+| `10050` | `Ulduar - The Descent of Madness` | `150` | `Ulduar` |
+| `10051` | `Ulduar - The Spark of Imagination` | `151` | `Ulduar` |
+| `10052` | `Ulduar - The Inner Sanctum of Ulduar` | `149` | `Ulduar` |
+| `10053` | `Utgarde Pinnacle - Lower Level` | `136` | `Utgarde Pinnacle` |
+| `10054` | `Halls of Lightning - The Terrestrial Watchtower` | `139` | `Halls of Lightning` |
+| `10055` | `Azjol-Nerub - The Brood Pit` | `157` | `Azjol-Nerub` |
+| `10056` | `Azjol-Nerub - Hadronox's Lair` | `158` | `Azjol-Nerub` |
+| `10057` | `Utgarde Keep - Middle Level` | `134` | `Utgarde Keep` |
+| `10058` | `Utgarde Keep - Upper Level` | `135` | `Utgarde Keep` |
+| `10059` | `The Culling of Stratholme - City` | `131` | `The Culling of Stratholme` |
+| `10060` | `Drak'Tharon Keep - Upper Level` | `161` | `Drak'Tharon Keep` |
+| `10061` | `Gundrak - Lower Level` | `153` | `Gundrak` |
+| `10062` | `Naxxramas - Construct Quarter` | `162` | `Naxxramas` |
+| `10063` | `Naxxramas - Arachnid Quarter` | `163` | `Naxxramas` |
+| `10064` | `Naxxramas - Military Quarter` | `164` | `Naxxramas` |
+| `10065` | `Naxxramas - Plague Quarter` | `165` | `Naxxramas` |
+| `10066` | `Naxxramas - Frostwyrm Lair` | `167` | `Naxxramas` |
+| `10067` | `Icecrown Citadel - Rampart of Skulls` | `187` | `Icecrown Citadel` |
+| `10068` | `Icecrown Citadel - Deathbringer's Rise` | `188` | `Icecrown Citadel` |
+| `10069` | `Icecrown Citadel - Sindragosa` | `189` | `Icecrown Citadel` |
+| `10070` | `Icecrown Citadel - Upper Spire` | `190` | `Icecrown Citadel` |
+| `10071` | `Icecrown Citadel - Queen Lana'thel` | `191` | `Icecrown Citadel` |
+| `10072` | `Icecrown Citadel - The Frozen Throne` | `192` | `Icecrown Citadel` |
+
 ## Commands
 
 Build all outputs:

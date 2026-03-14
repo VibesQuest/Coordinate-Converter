@@ -194,3 +194,31 @@ def test_known_wotlk_instance_area_keys_with_map_defaults_accept_real_coordinate
 
     converted = converter.convert_zone_buckets(pack, {legacy_key: [[12.34, 56.78]]})
     assert converted == {map_id: {coord_ui_map_id: [[12.34, 56.78]]}}
+
+
+@pytest.mark.parametrize(
+    ("legacy_key", "map_id", "coord_ui_map_id", "point"),
+    (
+        (10002, 230, 243, (55.2, 72.8)),
+        (10047, 578, 144, (46.1, 19.1)),
+        (10053, 575, 136, (-1.0, -1.0)),
+        (10054, 602, 139, (48.7, 26.4)),
+        (10067, 631, 187, (19.8, 65.4)),
+        (10072, 631, 192, (49.8, 52.7)),
+    ),
+)
+def test_fake_wotlk_floor_keys_map_to_specific_instance_ui_maps(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+    point: tuple[float, float],
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes["v3"]["converter"]
+    pack = coordinate_runtimes["v3"]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {legacy_key: [[point[0], point[1]]]})
+    if point == (-1.0, -1.0):
+        assert converted == {map_id: {0: [[-1.0, -1.0]]}}
+        return
+    assert converted == {map_id: {coord_ui_map_id: [[point[0], point[1]]]}}
