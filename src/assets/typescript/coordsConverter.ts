@@ -68,8 +68,8 @@ export function convertZoneBuckets(
 export function replaceUnknownInstanceBuckets(
   pack: Pack,
   mapBuckets: Record<number, Record<number, Array<[number, number]>>>,
-): Record<number, Record<number, Array<[number, number]>>> {
-  const result: Record<number, Record<number, Array<[number, number]>>> = {};
+): Record<number, Record<number, Array<Array<number>>>> {
+  const result: Record<number, Record<number, Array<Array<number>>>> = {};
 
   for (const [mapIdText, coordBuckets] of Object.entries(mapBuckets)) {
     const mapId = Number(mapIdText);
@@ -94,10 +94,7 @@ export function replaceUnknownInstanceBuckets(
 
     result[mapId] = {};
     for (const [coordUiMapIdText, points] of Object.entries(coordBuckets)) {
-      result[mapId][Number(coordUiMapIdText)] = points.map((point) => [
-        Number(point[0]),
-        Number(point[1]),
-      ]);
+      result[mapId][Number(coordUiMapIdText)] = points.map((point) => normalizePoint(point));
     }
   }
 
@@ -186,10 +183,6 @@ function shouldEmitUnknownInstanceBucket(
   return (
     Number(point[0]) === UNKNOWN_COORD_POINT[0]
     && Number(point[1]) === UNKNOWN_COORD_POINT[1]
-    && (
-      pack.instanceAnchorByMapId.has(Number(mapId))
-      || pack.instanceAnchorByZoneAreaId.has(Number(zoneAreaId))
-    )
   );
 }
 
@@ -238,4 +231,8 @@ function isUnknownBucket(points?: Array<[number, number]>): boolean {
 
 function roundTo(value: number, decimals: number): number {
   return Number(value.toFixed(decimals));
+}
+
+function normalizePoint(point: Array<number>): Array<number> {
+  return [Number(point[0]), Number(point[1]), ...point.slice(2)];
 }

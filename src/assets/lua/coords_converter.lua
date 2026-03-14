@@ -29,12 +29,16 @@ local function is_unknown_point(point)
   return tonumber(point[1]) == -1 and tonumber(point[2]) == -1
 end
 
+local function normalize_point(point)
+  local normalized = {tonumber(point[1]), tonumber(point[2])}
+  for index = 3, #point do
+    normalized[#normalized + 1] = point[index]
+  end
+  return normalized
+end
+
 local function should_emit_unknown_instance_bucket(pack, zone_area_id, map_id, point)
   return is_unknown_point(point)
-    and (
-      pack.instanceAnchorByMapId[tonumber(map_id)] ~= nil
-      or pack.instanceAnchorByZoneAreaId[tonumber(zone_area_id)] ~= nil
-    )
 end
 
 local function target_coord_ui_map_id(pack, zone_space)
@@ -213,7 +217,7 @@ function M.replace_unknown_instance_buckets(pack, map_buckets)
       for coord_ui_map_id, points in pairs(coord_buckets) do
         local out_bucket = ensure_bucket(result, numeric_map_id, tonumber(coord_ui_map_id))
         for _, point in ipairs(points) do
-          out_bucket[#out_bucket + 1] = {tonumber(point[1]), tonumber(point[2])}
+          out_bucket[#out_bucket + 1] = normalize_point(point)
         end
       end
     end

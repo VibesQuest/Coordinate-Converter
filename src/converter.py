@@ -104,15 +104,15 @@ class PortableCoordinateConverter:
     def replace_unknown_instance_buckets(
         self,
         map_buckets: Mapping[int, Mapping[int, Sequence[Sequence[float]]]],
-    ) -> dict[int, dict[int, list[list[float]]]]:
+    ) -> dict[int, dict[int, list[list[float | int]]]]:
         """Replace unresolved `[mapId][0]={{-1,-1}}` buckets with portable anchors."""
-        result: dict[int, dict[int, list[list[float]]]] = defaultdict(
+        result: dict[int, dict[int, list[list[float | int]]]] = defaultdict(
             lambda: defaultdict(list)
         )
 
         for map_id, coord_buckets in map_buckets.items():
             normalized = {
-                int(coord_ui_map_id): [[float(point[0]), float(point[1])] for point in points]
+                int(coord_ui_map_id): [self._normalize_point(point) for point in points]
                 for coord_ui_map_id, points in coord_buckets.items()
             }
             anchor_record = self._instance_anchors.get(int(map_id))
@@ -194,14 +194,9 @@ class PortableCoordinateConverter:
     ) -> bool:
         if len(point) < 2:
             return False
-        if (
-            float(point[0]) != UNKNOWN_COORD_POINT[0]
-            or float(point[1]) != UNKNOWN_COORD_POINT[1]
-        ):
-            return False
         return (
-            map_id in self._instance_anchors
-            or zone_area_id in self._instance_anchors_by_zone_area
+            float(point[0]) == UNKNOWN_COORD_POINT[0]
+            and float(point[1]) == UNKNOWN_COORD_POINT[1]
         )
 
     def _get_projection_bounds(self, map_id: int, ui_map_id: int) -> ProjectionBoundsRecord:
@@ -222,6 +217,12 @@ class PortableCoordinateConverter:
             and float(point[1]) == UNKNOWN_COORD_POINT[1]
             for point in points
         )
+
+    @staticmethod
+    def _normalize_point(point: Sequence[float | int]) -> list[float | int]:
+        normalized: list[float | int] = [float(point[0]), float(point[1])]
+        normalized.extend(point[2:])
+        return normalized
 
 
 def invert_zone_percent_to_world(

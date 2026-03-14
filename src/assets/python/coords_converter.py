@@ -72,13 +72,13 @@ def convert_zone_buckets(
 
 def replace_unknown_instance_buckets(
     pack: dict[str, Any],
-    map_buckets: dict[int, dict[int, list[list[float]]]],
-) -> dict[int, dict[int, list[list[float]]]]:
-    result: dict[int, dict[int, list[list[float]]]] = defaultdict(lambda: defaultdict(list))
+    map_buckets: dict[int, dict[int, list[list[float | int]]]],
+) -> dict[int, dict[int, list[list[float | int]]]]:
+    result: dict[int, dict[int, list[list[float | int]]]] = defaultdict(lambda: defaultdict(list))
 
     for map_id, coord_buckets in map_buckets.items():
         normalized = {
-            int(coord_ui_map_id): [[float(point[0]), float(point[1])] for point in points]
+            int(coord_ui_map_id): [_normalize_point(point) for point in points]
             for coord_ui_map_id, points in coord_buckets.items()
         }
         anchor_record = pack["instanceAnchorByMapId"].get(int(map_id))
@@ -236,9 +236,13 @@ def _should_emit_unknown_instance_bucket(
 ) -> bool:
     if len(point) < 2:
         return False
-    if float(point[0]) != UNKNOWN_COORD_POINT[0] or float(point[1]) != UNKNOWN_COORD_POINT[1]:
-        return False
     return (
-        int(map_id) in pack["instanceAnchorByMapId"]
-        or int(zone_area_id) in pack["instanceAnchorByZoneAreaId"]
+        float(point[0]) == UNKNOWN_COORD_POINT[0]
+        and float(point[1]) == UNKNOWN_COORD_POINT[1]
     )
+
+
+def _normalize_point(point: list[float | int]) -> list[float | int]:
+    normalized: list[float | int] = [float(point[0]), float(point[1])]
+    normalized.extend(point[2:])
+    return normalized
