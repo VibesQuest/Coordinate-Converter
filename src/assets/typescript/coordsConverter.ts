@@ -1,5 +1,67 @@
 export const UNKNOWN_COORD_UI_MAP_ID = 0;
 
+// Tiny runtime escape hatches for legacy keys that do not fit normal
+// basis/reprojection logic.
+const MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR: Record<string, Record<number, {
+  mapId: number;
+  coordUiMapId: number;
+  sourceX: number;
+  sourceY: number;
+  targetX: number;
+  targetY: number;
+}>> = {
+  classic: {
+    10089: {
+      mapId: 1,
+      coordUiMapId: 1414,
+      sourceX: 29.99,
+      sourceY: 89.15,
+      targetX: 70.58,
+      targetY: 96.19,
+    },
+  },
+  tbc: {
+    10089: {
+      mapId: 1,
+      coordUiMapId: 1414,
+      sourceX: 29.99,
+      sourceY: 89.15,
+      targetX: 70.58,
+      targetY: 96.19,
+    },
+  },
+  wotlk: {
+    10089: {
+      mapId: 1,
+      coordUiMapId: 1414,
+      sourceX: 29.99,
+      sourceY: 89.15,
+      targetX: 77.11,
+      targetY: 88.84,
+    },
+  },
+  cata: {
+    10089: {
+      mapId: 1,
+      coordUiMapId: 1414,
+      sourceX: 29.99,
+      sourceY: 89.15,
+      targetX: 77.11,
+      targetY: 88.84,
+    },
+  },
+  mop: {
+    10089: {
+      mapId: 1,
+      coordUiMapId: 1414,
+      sourceX: 29.99,
+      sourceY: 89.15,
+      targetX: 77.11,
+      targetY: 88.84,
+    },
+  },
+};
+
 type Pack = {
   zoneSpaceByAreaId: Map<number, any>;
   projectionBoundsByKey: Map<string, any>;
@@ -15,9 +77,14 @@ export function convertZoneBuckets(
   coordDecimals = 2,
 ): Record<number, Record<number, Array<Array<number>>>> {
   const result: Record<number, Record<number, Array<Array<number>>>> = {};
+  const fixedPointOverrides = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR[String((pack as any).manifest?.flavor ?? "")] ?? {};
 
   for (const [zoneAreaIdText, points] of Object.entries(zoneBuckets)) {
     const zoneAreaId = Number(zoneAreaIdText);
+    if (applyManualFixedPointOverride(result, fixedPointOverrides, zoneAreaId, points, coordDecimals)) {
+      continue;
+    }
+
     const legacyBasis = pack.legacyBasisByKey.get(zoneAreaId);
     const zoneSpace = pack.zoneSpaceByAreaId.get(zoneAreaId);
     if (!legacyBasis && !zoneSpace) {
@@ -63,6 +130,49 @@ export function convertZoneBuckets(
   }
 
   return result;
+}
+
+function applyManualFixedPointOverride(
+  result: Record<number, Record<number, Array<Array<number>>>>,
+  fixedPointOverrides: Record<number, {
+    mapId: number;
+    coordUiMapId: number;
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+  }>,
+  zoneAreaId: number,
+  points: Array<[number, number]>,
+  coordDecimals: number,
+): boolean {
+  const fixedPoint = fixedPointOverrides[zoneAreaId];
+  if (!fixedPoint) {
+    return false;
+  }
+
+  // Only the known researched source point is accepted here. Anything else
+  // should still fail loudly instead of becoming a generic remap rule.
+  result[fixedPoint.mapId] ??= {};
+  result[fixedPoint.mapId][fixedPoint.coordUiMapId] ??= [];
+  for (const point of points) {
+    if (point.length < 2) {
+      throw new Error(`Expected coordinate pair for zoneAreaId=${zoneAreaId}, got ${JSON.stringify(point)}`);
+    }
+    if (
+      Number(point[0]).toFixed(2) !== Number(fixedPoint.sourceX).toFixed(2)
+      || Number(point[1]).toFixed(2) !== Number(fixedPoint.sourceY).toFixed(2)
+    ) {
+      throw new Error(
+        `Legacy key=${zoneAreaId} only supports the known fixed point (${fixedPoint.sourceX}, ${fixedPoint.sourceY})`,
+      );
+    }
+    result[fixedPoint.mapId][fixedPoint.coordUiMapId].push([
+      roundTo(Number(fixedPoint.targetX), coordDecimals),
+      roundTo(Number(fixedPoint.targetY), coordDecimals),
+    ]);
+  }
+  return true;
 }
 
 export function replaceUnknownInstanceBuckets(

@@ -1,6 +1,60 @@
 local M = {}
 
 local UNKNOWN_COORD_UI_MAP_ID = 0
+-- Tiny runtime escape hatches for legacy keys that do not fit normal
+-- basis/reprojection logic.
+local MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR = {
+  classic = {
+    [10089] = {
+      mapId = 1,
+      coordUiMapId = 1414,
+      sourceX = 29.99,
+      sourceY = 89.15,
+      targetX = 70.58,
+      targetY = 96.19,
+    },
+  },
+  tbc = {
+    [10089] = {
+      mapId = 1,
+      coordUiMapId = 1414,
+      sourceX = 29.99,
+      sourceY = 89.15,
+      targetX = 70.58,
+      targetY = 96.19,
+    },
+  },
+  wotlk = {
+    [10089] = {
+      mapId = 1,
+      coordUiMapId = 1414,
+      sourceX = 29.99,
+      sourceY = 89.15,
+      targetX = 77.11,
+      targetY = 88.84,
+    },
+  },
+  cata = {
+    [10089] = {
+      mapId = 1,
+      coordUiMapId = 1414,
+      sourceX = 29.99,
+      sourceY = 89.15,
+      targetX = 77.11,
+      targetY = 88.84,
+    },
+  },
+  mop = {
+    [10089] = {
+      mapId = 1,
+      coordUiMapId = 1414,
+      sourceX = 29.99,
+      sourceY = 89.15,
+      targetX = 77.11,
+      targetY = 88.84,
+    },
+  },
+}
 
 local function ensure_bucket(result, map_id, coord_ui_map_id)
   result[map_id] = result[map_id] or {}
@@ -60,6 +114,40 @@ local function get_projection_bounds(pack, map_id, ui_map_id)
     error(string.format("No projection bounds for mapId=%d, uiMapId=%d", map_id, ui_map_id), 2)
   end
   return bounds
+end
+
+local function apply_manual_fixed_point_override(result, fixed_point_overrides, zone_area_id, points, coord_decimals)
+  local fixed_point = fixed_point_overrides[tonumber(zone_area_id)]
+  if fixed_point == nil then
+    return false
+  end
+
+  -- Only the known researched source point is accepted here. Anything else
+  -- should still fail loudly instead of becoming a generic remap rule.
+  local bucket = ensure_bucket(result, tonumber(fixed_point.mapId), tonumber(fixed_point.coordUiMapId))
+  for _, point in ipairs(points) do
+    if #point < 2 then
+      error(string.format("Expected coordinate pair for zoneAreaId=%s, got %s", tostring(zone_area_id), tostring(point)), 2)
+    end
+    if round(tonumber(point[1]), 2) ~= round(tonumber(fixed_point.sourceX), 2)
+      or round(tonumber(point[2]), 2) ~= round(tonumber(fixed_point.sourceY), 2)
+    then
+      error(
+        string.format(
+          "Legacy key=%s only supports the known fixed point (%s, %s)",
+          tostring(zone_area_id),
+          tostring(fixed_point.sourceX),
+          tostring(fixed_point.sourceY)
+        ),
+        2
+      )
+    end
+    bucket[#bucket + 1] = {
+      round(tonumber(fixed_point.targetX), coord_decimals),
+      round(tonumber(fixed_point.targetY), coord_decimals),
+    }
+  end
+  return true
 end
 
 local function convert_legacy_point(pack, legacy_basis, zone_space, target_bounds, point)
@@ -151,8 +239,13 @@ end
 function M.convert_zone_buckets(pack, zone_buckets, coord_decimals)
   coord_decimals = coord_decimals or 2
   local result = {}
+  local fixed_point_overrides = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR[tostring(pack.manifest and pack.manifest.flavor)] or {}
 
   for zone_area_id, points in pairs(zone_buckets) do
+    if apply_manual_fixed_point_override(result, fixed_point_overrides, zone_area_id, points, coord_decimals) then
+      goto continue_zone
+    end
+
     local legacy_basis = pack.legacyBasisByKey[tonumber(zone_area_id)]
     local zone_space = pack.zoneSpaceByAreaId[tonumber(zone_area_id)]
     if legacy_basis == nil and zone_space == nil then
@@ -182,6 +275,7 @@ function M.convert_zone_buckets(pack, zone_buckets, coord_decimals)
       bucket[#bucket + 1] = coord_pair
       ::continue_point::
     end
+    ::continue_zone::
   end
 
   return result

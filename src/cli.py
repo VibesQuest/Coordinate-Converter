@@ -15,7 +15,7 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_pack_parser = subparsers.add_parser("build-pack")
-    build_pack_parser.add_argument("--major-version", type=int, required=True, choices=(1, 2, 3))
+    build_pack_parser.add_argument("--major-version", type=int, required=True)
     build_pack_parser.add_argument("--dbc-db", type=Path, required=True)
     build_pack_parser.add_argument("--output-dir", type=Path, required=True)
 

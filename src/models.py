@@ -226,7 +226,6 @@ class CoordinatePack:
             )
             for row in _load_json(pack_path / INSTANCE_ANCHORS_FILE)
         )
-
         return cls(
             flavor=str(manifest["flavor"]),
             schema_version=schema_version,
@@ -357,7 +356,11 @@ def _dump_anchor_buckets(rows: tuple[AnchorBucketRecord, ...]) -> list[dict[str,
     ]
 
 
-def _load_json(path: Path) -> Any:
+def _load_json(path: Path, default: Any | None = None) -> Any:
+    if not path.exists():
+        if default is not None:
+            return default
+        raise FileNotFoundError(path)
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 

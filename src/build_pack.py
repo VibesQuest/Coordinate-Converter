@@ -24,13 +24,7 @@ from .ui_map_selection import (
     primary_ui_map_sort_key,
     select_coord_ui_map_id,
 )
-
-
-FLAVOR_BY_MAJOR_VERSION = {
-    1: "classic",
-    2: "tbc",
-    3: "wotlk",
-}
+from .versions import flavor_for_major_version
 LEGACY_TRANSFORM_IDENTITY = "identity"
 LEGACY_TRANSFORM_REPROJECT = "reproject"
 LEGACY_SOURCE_KIND_ZONE_BOUNDS = "zone_bounds"
@@ -44,9 +38,7 @@ def build_coordinate_pack(
     major_version: int,
     dbc_db_path: str | Path | None = None,
 ) -> CoordinatePack:
-    flavor = FLAVOR_BY_MAJOR_VERSION.get(int(major_version))
-    if flavor is None:
-        raise ValueError(f"Unsupported major version: {major_version}")
+    flavor = flavor_for_major_version(int(major_version))
 
     db_path = Path(dbc_db_path) if dbc_db_path else Path(f"dbc-source-v{major_version}.db")
     conn = sqlite3.connect(db_path)
@@ -273,6 +265,9 @@ def _build_legacy_coordinate_bases(
     for record in _build_unresolved_instance_aliases(area_rows, map_rows, map_defaults_by_map_id):
         records_by_key.setdefault(int(record.legacy_key), record)
 
+    for record in _build_top_level_map_default_identities(area_rows, map_defaults_by_map_id):
+        records_by_key.setdefault(int(record.legacy_key), record)
+
     _apply_manual_basis_overrides(flavor, records_by_key)
     _add_inherited_parent_legacy_bases(records_by_key, area_rows)
     _apply_manual_key_aliases(flavor, records_by_key)
@@ -333,14 +328,19 @@ def _build_unresolved_instance_aliases(
             continue
         if not _is_unresolved_instance_like_map(map_row):
             continue
+        target_coord_ui_map_id = int(map_defaults_by_map_id.get(map_id, 0))
         records_by_area_id.setdefault(
             int(area_id),
             _make_legacy_basis_record(
                 legacy_key=int(area_id),
                 map_id=map_id,
-                source_coord_ui_map_id=0,
-                target_coord_ui_map_id=0,
-                source_kind=LEGACY_SOURCE_KIND_INSTANCE_MAP_ALIAS,
+                source_coord_ui_map_id=target_coord_ui_map_id,
+                target_coord_ui_map_id=target_coord_ui_map_id,
+                source_kind=(
+                    LEGACY_SOURCE_KIND_CONTAINING_MAP_BOUNDS
+                    if target_coord_ui_map_id != 0
+                    else LEGACY_SOURCE_KIND_INSTANCE_MAP_ALIAS
+                ),
             ),
         )
     for map_id, map_row in map_rows.items():
@@ -349,17 +349,48 @@ def _build_unresolved_instance_aliases(
             continue
         if not _is_unresolved_instance_like_map(map_row):
             continue
+        target_coord_ui_map_id = int(map_defaults_by_map_id.get(int(map_id), 0))
         records_by_area_id.setdefault(
             int(area_id),
             _make_legacy_basis_record(
                 legacy_key=int(area_id),
                 map_id=int(map_id),
-                source_coord_ui_map_id=0,
-                target_coord_ui_map_id=0,
-                source_kind=LEGACY_SOURCE_KIND_INSTANCE_MAP_ALIAS,
+                source_coord_ui_map_id=target_coord_ui_map_id,
+                target_coord_ui_map_id=target_coord_ui_map_id,
+                source_kind=(
+                    LEGACY_SOURCE_KIND_CONTAINING_MAP_BOUNDS
+                    if target_coord_ui_map_id != 0
+                    else LEGACY_SOURCE_KIND_INSTANCE_MAP_ALIAS
+                ),
             ),
         )
     return list(records_by_area_id.values())
+
+
+def _build_top_level_map_default_identities(
+    area_rows: dict[int, dict[str, int]],
+    map_defaults_by_map_id: dict[int, int],
+) -> list[LegacyCoordinateBasisRecord]:
+    records: list[LegacyCoordinateBasisRecord] = []
+    for area_id, area_row in area_rows.items():
+        if int(area_row["parent_id"]) != 0:
+            continue
+        map_id = int(area_row["map_id"])
+        if map_id <= 1:
+            continue
+        coord_ui_map_id = map_defaults_by_map_id.get(map_id)
+        if coord_ui_map_id is None:
+            continue
+        records.append(
+            _make_legacy_basis_record(
+                legacy_key=int(area_id),
+                map_id=map_id,
+                source_coord_ui_map_id=int(coord_ui_map_id),
+                target_coord_ui_map_id=int(coord_ui_map_id),
+                source_kind=LEGACY_SOURCE_KIND_CONTAINING_MAP_BOUNDS,
+            )
+        )
+    return records
 
 
 def _is_unresolved_instance_like_map(map_row: dict[str, int | None]) -> bool:
@@ -511,7 +542,7 @@ def _normalize_parent_ui_map_id(parent_ui_map_id: int | None) -> int | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build standalone coordinate packs.")
-    parser.add_argument("--major-version", type=int, required=True, choices=(1, 2, 3))
+    parser.add_argument("--major-version", type=int, required=True)
     parser.add_argument("--dbc-db", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()

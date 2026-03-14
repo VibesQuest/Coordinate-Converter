@@ -125,3 +125,72 @@ def test_known_v3_legacy_basis_appends_default_ui_map_hint_id(
     converted = converter.convert_zone_buckets(pack, {4395: [[12.34, 56.78]]})
     assert converted == {571: {113: [[12.34, 56.78, 125]]}}
     assert validate_map_buckets(converted) == []
+
+
+@pytest.mark.parametrize(
+    ("legacy_key", "map_id", "coord_ui_map_id"),
+    (
+        (10073, 1, 1414),
+        (10074, 0, 1415),
+    ),
+)
+def test_fake_classic_continent_keys_map_to_continent_defaults(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes["v1"]["converter"]
+    pack = coordinate_runtimes["v1"]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {legacy_key: [[12.34, 56.78]]})
+    assert converted == {map_id: {coord_ui_map_id: [[12.34, 56.78]]}}
+
+
+@pytest.mark.parametrize(
+    ("version", "target_x", "target_y"),
+    (
+        ("v1", 70.58, 96.19),
+        ("v2", 70.58, 96.19),
+        ("v3", 77.11, 88.84),
+    ),
+)
+def test_fake_world_map_key_maps_to_hardcoded_per_version_point(
+    version: str,
+    target_x: float,
+    target_y: float,
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes[version]["converter"]
+    pack = coordinate_runtimes[version]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {10089: [[29.99, 89.15]]})
+    assert converted == {1: {1414: [[target_x, target_y]]}}
+
+
+@pytest.mark.parametrize(
+    ("legacy_key", "map_id", "coord_ui_map_id"),
+    (
+        (3979, 571, 113),
+        (4820, 668, 185),
+        (4494, 619, 132),
+        (4812, 631, 186),
+        (4196, 600, 160),
+        (4809, 632, 183),
+        (4265, 576, 129),
+        (4264, 599, 140),
+        (4415, 608, 168),
+        (1196, 575, 136),
+    ),
+)
+def test_known_wotlk_instance_area_keys_with_map_defaults_accept_real_coordinates(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes["v3"]["converter"]
+    pack = coordinate_runtimes["v3"]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {legacy_key: [[12.34, 56.78]]})
+    assert converted == {map_id: {coord_ui_map_id: [[12.34, 56.78]]}}

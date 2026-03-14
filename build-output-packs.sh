@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATA_DIR="${ROOT_DIR}/../sources/dbc/data"
 DBC_OUT_DIR="${ROOT_DIR}/dbc-output"
 PACK_OUT_DIR="${ROOT_DIR}/output"
+DEFAULT_MAJOR_VERSIONS=(1 2 3 4 5 7)
 
 cd "${ROOT_DIR}"
 
@@ -19,8 +20,7 @@ build_version() {
   uv run python -m src.dbc_source.main \
     --major-version "${major_version}" \
     --data-dir "${DATA_DIR}" \
-    --out "${dbc_db}" \
-    --offline
+    --out "${dbc_db}"
 
   uv run python -m src.build_pack \
     --major-version "${major_version}" \
@@ -39,9 +39,9 @@ main() {
     exit 0
   fi
 
-  build_version 1
-  build_version 2
-  build_version 3
+  for major_version in "${DEFAULT_MAJOR_VERSIONS[@]}"; do
+    build_version "${major_version}"
+  done
 }
 
 main "$@"

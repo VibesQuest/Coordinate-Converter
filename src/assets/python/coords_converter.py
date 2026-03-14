@@ -6,6 +6,60 @@ from typing import Any
 
 UNKNOWN_COORD_UI_MAP_ID = 0
 UNKNOWN_COORD_POINT = (-1.0, -1.0)
+# Tiny runtime escape hatches for legacy keys that do not fit normal
+# basis/reprojection logic.
+MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR = {
+    "classic": {
+        10089: {
+            "mapId": 1,
+            "coordUiMapId": 1414,
+            "sourceX": 29.99,
+            "sourceY": 89.15,
+            "targetX": 70.58,
+            "targetY": 96.19,
+        },
+    },
+    "tbc": {
+        10089: {
+            "mapId": 1,
+            "coordUiMapId": 1414,
+            "sourceX": 29.99,
+            "sourceY": 89.15,
+            "targetX": 70.58,
+            "targetY": 96.19,
+        },
+    },
+    "wotlk": {
+        10089: {
+            "mapId": 1,
+            "coordUiMapId": 1414,
+            "sourceX": 29.99,
+            "sourceY": 89.15,
+            "targetX": 77.11,
+            "targetY": 88.84,
+        },
+    },
+    "cata": {
+        10089: {
+            "mapId": 1,
+            "coordUiMapId": 1414,
+            "sourceX": 29.99,
+            "sourceY": 89.15,
+            "targetX": 77.11,
+            "targetY": 88.84,
+        },
+    },
+    "mop": {
+        10089: {
+            "mapId": 1,
+            "coordUiMapId": 1414,
+            "sourceX": 29.99,
+            "sourceY": 89.15,
+            "targetX": 77.11,
+            "targetY": 88.84,
+        },
+    },
+}
 
 
 def convert_zone_buckets(
@@ -14,8 +68,21 @@ def convert_zone_buckets(
     coord_decimals: int = 2,
 ) -> dict[int, dict[int, list[list[float | int]]]]:
     result: dict[int, dict[int, list[list[float | int]]]] = defaultdict(lambda: defaultdict(list))
+    fixed_point_overrides = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR.get(
+        str(pack["manifest"]["flavor"]),
+        {},
+    )
 
     for zone_area_id, points in zone_buckets.items():
+        if _apply_manual_fixed_point_override(
+            result=result,
+            fixed_point_overrides=fixed_point_overrides,
+            zone_area_id=int(zone_area_id),
+            points=points,
+            coord_decimals=coord_decimals,
+        ):
+            continue
+
         legacy_basis = pack["legacyBasisByKey"].get(int(zone_area_id))
         zone_space = pack["zoneSpaceByAreaId"].get(int(zone_area_id))
         if legacy_basis is None and zone_space is None:
@@ -68,6 +135,43 @@ def convert_zone_buckets(
         }
         for map_id, coord_buckets in result.items()
     }
+
+
+def _apply_manual_fixed_point_override(
+    *,
+    result: dict[int, dict[int, list[list[float | int]]]],
+    fixed_point_overrides: dict[int, dict[str, float | int]],
+    zone_area_id: int,
+    points: list[list[float]],
+    coord_decimals: int,
+) -> bool:
+    fixed_point = fixed_point_overrides.get(int(zone_area_id))
+    if fixed_point is None:
+        return False
+
+    # Only the known researched source point is accepted here. Anything else
+    # should still fail loudly instead of being treated as a generic remap.
+    bucket = result[int(fixed_point["mapId"])][int(fixed_point["coordUiMapId"])]
+    for point in points:
+        if len(point) < 2:
+            raise ValueError(
+                f"Expected coordinate pair for zoneAreaId={zone_area_id}, got {point!r}"
+            )
+        if (
+            round(float(point[0]), 2) != round(float(fixed_point["sourceX"]), 2)
+            or round(float(point[1]), 2) != round(float(fixed_point["sourceY"]), 2)
+        ):
+            raise ValueError(
+                f"Legacy key={zone_area_id} only supports the known fixed point "
+                f"({fixed_point['sourceX']}, {fixed_point['sourceY']})"
+            )
+        bucket.append(
+            [
+                round(float(fixed_point["targetX"]), coord_decimals),
+                round(float(fixed_point["targetY"]), coord_decimals),
+            ]
+        )
+    return True
 
 
 def replace_unknown_instance_buckets(
@@ -215,7 +319,6 @@ def _get_projection_bounds(pack: dict[str, Any], map_id: int, ui_map_id: int) ->
     if bounds is None:
         raise KeyError(f"No projection bounds for mapId={map_id}, uiMapId={ui_map_id}")
     return bounds
-
 
 def _is_unknown_bucket(points: list[list[float]] | None) -> bool:
     if not points:

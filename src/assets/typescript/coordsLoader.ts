@@ -62,6 +62,5 @@ export async function loadCoordinatePack(packDir: string): Promise<CoordinatePac
       .filter((row: any) => row.zoneAreaId !== null && row.zoneAreaId !== undefined)
       .map((row: any) => [Number(row.zoneAreaId), row]),
   );
-
   return pack as CoordinatePack;
 }

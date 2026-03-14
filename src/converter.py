@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
+from .manual_overrides import MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR
 from .models import (
     LegacyCoordinateBasisRecord,
     CoordinatePack,
@@ -33,6 +34,7 @@ class CoordinateConverter:
         self._legacy_bases = pack.legacy_basis_by_key()
         self._instance_anchors = pack.instance_anchor_by_map_id()
         self._instance_anchors_by_zone_area = pack.instance_anchor_by_zone_area_id()
+        self._manual_fixed_points = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR.get(pack.flavor, {})
 
     def convert_zone_buckets(
         self,
@@ -45,6 +47,14 @@ class CoordinateConverter:
         )
 
         for zone_area_id, points in zone_buckets.items():
+            if self._apply_manual_fixed_point_override(
+                result=result,
+                zone_area_id=int(zone_area_id),
+                points=points,
+                coord_decimals=coord_decimals,
+            ):
+                continue
+
             legacy_basis = self._legacy_bases.get(int(zone_area_id))
             zone_space = self._zone_spaces.get(int(zone_area_id))
             if legacy_basis is None and zone_space is None:
@@ -137,6 +147,44 @@ class CoordinateConverter:
             for map_id, coord_buckets in result.items()
         }
 
+    def _apply_manual_fixed_point_override(
+        self,
+        *,
+        result: dict[int, dict[int, list[list[float | int]]]],
+        zone_area_id: int,
+        points: Sequence[Sequence[float]],
+        coord_decimals: int,
+    ) -> bool:
+        fixed_point = self._manual_fixed_points.get(int(zone_area_id))
+        if fixed_point is None:
+            return False
+
+        # These are intentionally tiny, flavor-scoped escape hatches for legacy
+        # keys that do not fit the normal basis/reprojection model.
+        bucket = result[int(fixed_point.map_id)][int(fixed_point.coord_ui_map_id)]
+        for point in points:
+            if len(point) < 2:
+                raise ValueError(
+                    f"Expected coordinate pair for zoneAreaId={zone_area_id}, got {point!r}"
+                )
+            # Match only the one researched source point so this path cannot
+            # silently start acting like a generic remapping rule.
+            if (
+                round(float(point[0]), 2) != round(float(fixed_point.source_x), 2)
+                or round(float(point[1]), 2) != round(float(fixed_point.source_y), 2)
+            ):
+                raise ValueError(
+                    f"Legacy key={zone_area_id} only supports the known fixed point "
+                    f"({fixed_point.source_x}, {fixed_point.source_y})"
+                )
+            bucket.append(
+                [
+                    round(float(fixed_point.target_x), coord_decimals),
+                    round(float(fixed_point.target_y), coord_decimals),
+                ]
+            )
+        return True
+
     def _target_coord_ui_map_id(self, zone_space: ZoneSpaceRecord) -> int:
         coord_ui_map_id = self._map_defaults.get(zone_space.map_id)
         if coord_ui_map_id is not None:
@@ -207,7 +255,6 @@ class CoordinateConverter:
             )
         return record
 
-    @staticmethod
     def _is_unknown_bucket(points: Sequence[Sequence[float]] | None) -> bool:
         if not points:
             return False

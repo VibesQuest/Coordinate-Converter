@@ -8,13 +8,7 @@ from types import ModuleType
 
 from . import areatable, map, uimap, uimapassignment
 from .common import download_csv, get_all_versions, resolve_build
-
-
-FLAVOR_BY_MAJOR_VERSION = {
-    1: "classic",
-    2: "tbc",
-    3: "wotlk",
-}
+from ..versions import flavor_for_major_version
 
 
 DBC_TABLES: list[ModuleType] = [
@@ -45,7 +39,7 @@ def ensure_csv(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build minimal DBC SQLite source for coordinate packs.")
-    parser.add_argument("--major-version", type=int, required=True, choices=(1, 2, 3))
+    parser.add_argument("--major-version", type=int, required=True)
     parser.add_argument("--build", default=None, help="Specific build version like 3.80.0.66130")
     parser.add_argument("--data-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
@@ -55,6 +49,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if int(args.major_version) <= 0:
+        raise ValueError(f"Unsupported major version: {args.major_version}")
     all_versions = get_all_versions() if not args.offline else None
     build_input = args.build if args.build else str(args.major_version)
     build_version = resolve_build(
@@ -84,7 +80,7 @@ def main() -> int:
         conn.execute("CREATE TABLE IF NOT EXISTS db_meta (key TEXT PRIMARY KEY, value TEXT)")
         conn.execute("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)", ("build", build_version))
         conn.execute("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)", ("major_version", str(args.major_version)))
-        conn.execute("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)", ("flavor", FLAVOR_BY_MAJOR_VERSION[args.major_version]))
+        conn.execute("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)", ("flavor", flavor_for_major_version(args.major_version)))
         conn.execute("INSERT OR REPLACE INTO db_meta (key, value) VALUES (?, ?)", ("source", "dbc-minimal"))
         for table_module in DBC_TABLES:
             row_count = table_module.build_table(

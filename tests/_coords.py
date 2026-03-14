@@ -6,6 +6,8 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Iterable
 
+from src.manual_overrides import MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR
+
 
 EXPANSION_TO_VERSION = {
     "classic": "v1",
@@ -67,6 +69,13 @@ def classify_zone_bucket_case(
     converter_module: ModuleType,
     case: ZoneBucketCase,
 ) -> str:
+    fixed_point = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR.get(
+        str(pack["manifest"]["flavor"]),
+        {},
+    ).get(case.zone_area_id)
+    if fixed_point is not None:
+        return "convertible"
+
     legacy_basis = pack["legacyBasisByKey"].get(case.zone_area_id)
     zone_space = pack["zoneSpaceByAreaId"].get(case.zone_area_id)
     if legacy_basis is None and zone_space is None:
