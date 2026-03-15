@@ -29,7 +29,7 @@ build_version() {
 }
 
 run_tests() {
-  uv run pytest -q
+  uv run --group dev pytest -q
 }
 
 main() {

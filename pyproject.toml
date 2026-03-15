@@ -12,6 +12,11 @@ dependencies = [
   "requests>=2.31.0",
 ]
 
+[dependency-groups]
+dev = [
+  "pytest>=8.0.0",
+]
+
 [project.scripts]
 coordinate-converter = "src.cli:main"
 coordinate-dbc-source = "src.dbc_source.main:main"
