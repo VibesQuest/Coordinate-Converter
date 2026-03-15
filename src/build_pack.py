@@ -45,6 +45,7 @@ def build_coordinate_pack(
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
+        db_meta = _load_db_meta(conn)
         ui_map_meta = _load_ui_map_meta(conn)
         map_rows = _load_map_rows(conn)
         area_rows = _load_area_rows(conn)
@@ -66,12 +67,33 @@ def build_coordinate_pack(
     return CoordinatePack(
         flavor=flavor,
         schema_version=CURRENT_SCHEMA_VERSION,
+        major_version=int(db_meta.get("major_version", major_version)),
+        dbc_build=str(db_meta["build"]) if db_meta.get("build") else None,
+        dbc_source=str(db_meta["source"]) if db_meta.get("source") else None,
         zone_spaces=tuple(sorted(zone_spaces, key=lambda row: row.zone_area_id)),
         projection_bounds=tuple(sorted(projection_bounds, key=lambda row: (row.map_id, row.ui_map_id))),
         map_defaults=tuple(sorted(map_defaults, key=lambda row: row.map_id)),
         legacy_bases=tuple(sorted(legacy_bases, key=lambda row: row.legacy_key)),
         instance_anchors=tuple(),
     )
+
+
+def _load_db_meta(conn: sqlite3.Connection) -> dict[str, str]:
+    if not _table_exists(conn, "db_meta"):
+        return {}
+    return {
+        str(row["key"]): str(row["value"])
+        for row in conn.execute('SELECT "key", "value" FROM db_meta')
+        if row["key"] is not None and row["value"] is not None
+    }
+
+
+def _table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (str(table_name),),
+    ).fetchone()
+    return row is not None
 
 
 def _load_ui_map_meta(conn: sqlite3.Connection) -> dict[int, UiMapMeta]:

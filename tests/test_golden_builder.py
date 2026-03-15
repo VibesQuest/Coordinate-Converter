@@ -30,6 +30,8 @@ EXPECTED_FLAVORS = {
     "v1": "classic",
     "v2": "tbc",
     "v3": "wotlk",
+    "v4": "cata",
+    "v5": "mop",
 }
 
 REQUIRED_LEGACY_KEYS = {
@@ -58,10 +60,11 @@ def test_built_pack_manifest_matches_expected_schema_and_flavor(
 ) -> None:
     manifest = _load_json(repo_root / "output" / version / "manifest.json")
 
-    assert manifest == {
-        "flavor": flavor,
-        "schemaVersion": 2,
-    }
+    assert manifest["flavor"] == flavor
+    assert manifest["schemaVersion"] == 2
+    assert manifest["majorVersion"] == int(version.removeprefix("v"))
+    assert isinstance(manifest["dbcBuild"], str) and manifest["dbcBuild"]
+    assert manifest["dbcSource"] == "dbc-minimal"
 
 
 @pytest.mark.parametrize("version", sorted(EXPECTED_FLAVORS))

@@ -87,6 +87,9 @@ class InstanceAnchorRecord:
 class CoordinatePack:
     flavor: str
     schema_version: int
+    major_version: int | None
+    dbc_build: str | None
+    dbc_source: str | None
     zone_spaces: tuple[ZoneSpaceRecord, ...]
     projection_bounds: tuple[ProjectionBoundsRecord, ...]
     map_defaults: tuple[MapDefaultRecord, ...]
@@ -229,6 +232,9 @@ class CoordinatePack:
         return cls(
             flavor=str(manifest["flavor"]),
             schema_version=schema_version,
+            major_version=_int_or_none(manifest.get("majorVersion")),
+            dbc_build=_str_or_none(manifest.get("dbcBuild")),
+            dbc_source=_str_or_none(manifest.get("dbcSource")),
             zone_spaces=zone_spaces,
             projection_bounds=projection_bounds,
             map_defaults=map_defaults,
@@ -245,6 +251,9 @@ class CoordinatePack:
             {
                 "flavor": self.flavor,
                 "schemaVersion": self.schema_version,
+                "majorVersion": self.major_version,
+                "dbcBuild": self.dbc_build,
+                "dbcSource": self.dbc_source,
             },
         )
         _dump_json(
@@ -323,6 +332,12 @@ def _int_or_none(value: Any) -> int | None:
     if value is None:
         return None
     return int(value)
+
+
+def _str_or_none(value: Any) -> str | None:
+    if value in (None, ""):
+        return None
+    return str(value)
 
 
 def _validate_unique_keys(records: tuple[Any, ...], key_fn, label: str) -> None:

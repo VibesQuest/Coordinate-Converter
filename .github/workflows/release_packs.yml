@@ -44,6 +44,13 @@ jobs:
       - name: Build output packs
         run: bash build-output-packs.sh
 
+      - name: Write release metadata
+        run: |
+          uv run python -m src.release_metadata \
+            --output-dir output \
+            --release-tag "${{ steps.release_meta.outputs.tag_name }}" \
+            --out dist/release-metadata.json
+
       - name: Create release archive
         run: |
           mkdir -p dist
@@ -52,12 +59,12 @@ jobs:
             echo "No output version directories found under output/" >&2
             exit 1
           fi
-          zip -r "dist/${{ steps.release_meta.outputs.zip_name }}" "${version_dirs[@]}"
+          zip -r "dist/${{ steps.release_meta.outputs.zip_name }}" "${version_dirs[@]}" dist/release-metadata.json
 
       - name: Publish release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "dist/${{ steps.release_meta.outputs.zip_name }}"
+          artifacts: "dist/${{ steps.release_meta.outputs.zip_name }},dist/release-metadata.json"
           tag: "${{ steps.release_meta.outputs.tag_name }}"
           name: "Release ${{ steps.release_meta.outputs.tag_name }}"
           generateReleaseNotes: true
