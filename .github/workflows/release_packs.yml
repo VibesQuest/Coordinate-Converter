@@ -1,0 +1,65 @@
+name: Release Coordinate Packs
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag to publish"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Resolve release tag
+        id: release_meta
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            tag_name="${{ inputs.tag_name }}"
+          else
+            tag_name="${GITHUB_REF_NAME}"
+          fi
+          echo "tag_name=${tag_name}" >> "${GITHUB_OUTPUT}"
+          echo "zip_name=coordinate-converter-${tag_name}.zip" >> "${GITHUB_OUTPUT}"
+
+      - name: Build output packs
+        run: bash build-output-packs.sh
+
+      - name: Create release archive
+        run: |
+          mkdir -p dist
+          mapfile -t version_dirs < <(find output -mindepth 1 -maxdepth 1 -type d -name 'v*' | sort)
+          if [[ ${#version_dirs[@]} -eq 0 ]]; then
+            echo "No output version directories found under output/" >&2
+            exit 1
+          fi
+          zip -r "dist/${{ steps.release_meta.outputs.zip_name }}" "${version_dirs[@]}"
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/${{ steps.release_meta.outputs.zip_name }}"
+          tag: "${{ steps.release_meta.outputs.tag_name }}"
+          name: "Release ${{ steps.release_meta.outputs.tag_name }}"
+          generateReleaseNotes: true
+          allowUpdates: true
+          removeArtifacts: true

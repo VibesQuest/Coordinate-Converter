@@ -1,0 +1,120 @@
+# This is a basic workflow that is manually triggered
+
+name: Development build QuestieDB (Dev branch)
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ dev ]
+    paths:
+      - "Database/**/*.lua-table" # Rebuild on database changes.
+      - "**.lua"
+      - "**.toc"
+      - "**.xml"
+      - "!.*"
+      - "!.tooling/lua/cli"
+      - "!venv"
+      - "!*/Include/**" # venv type folders
+      - "!*/Lib/**" # venv type folders
+      - "!*/Scripts/**" # venv type folders
+      # Build when buildscripts change as well.
+      - ".generate_database/*.lua"
+      - ".generate_database/*.py"
+      - ".generate_database/*.sh"
+      - ".database_generator/*.lua"
+      - ".database_generator/*.py"
+      - ".database_generator/*.sh"
+  schedule:
+  # We do it every 6 hours because we have people from all around the world, daily would be wonky
+  - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "greet"
+  build_dev_release:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Check out ${{ github.repository }} code
+      uses: actions/checkout@v4
+      with:
+        ref: dev
+
+    - name: Install Lua 5.1.5
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: "5.1.5"
+
+    - name: Install LuaRocks
+      uses: leafo/gh-actions-luarocks@v4.3.0
+
+    # Install LuaRocks packages
+    - name: Install Lua Packages
+      run: |
+        luarocks install bit32
+        luarocks install argparse
+        luarocks install luafilesystem
+        luarocks install luasocket
+        luarocks install luasec
+        luarocks install luv
+
+    - name: Generate HTML
+      run: sh ./.database_generator/generate_database.sh ./.lua/bin/lua true
+
+    - name: Run Era Tests
+      run: lua ./.tooling/lua/tests/runTests.lua Era
+
+    - name: Run Tbc Tests
+      run: lua ./.tooling/lua/tests/runTests.lua Tbc
+
+    - name: Run Wotlk Tests
+      run: lua ./.tooling/lua/tests/runTests.lua Wotlk
+
+    - name: Run Cata Tests
+      run: lua ./.tooling/lua/tests/runTests.lua Cata
+
+    - name: Run Mop Tests
+      run: lua ./.tooling/lua/tests/runTests.lua Mop
+
+    # Create the QuestieDB build, will output toc_version
+    - name: Check version is higher than latest release
+      run: |
+        pip install requests
+        python .github/check_version.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+
+    - name: Build QuestieDB
+      id: build
+      run: python build.py build QuestieDB
+      env:
+        GITHUB_ACTIONS: "true"
+        GITHUB_SHA: "${{ github.sha }}"
+
+    - name: Create QuestieDB.zip
+      uses: TheDoctor0/zip-release@0.7.6
+      with:
+        type: 'zip'
+        directory: './.build/'
+        path: './QuestieDB'
+        filename: 'QuestieDB-${{ steps.build.outputs.toc_version }}-dev-${{ github.sha }}.zip'
+
+    - name: Publish release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "./.build/QuestieDB-${{ steps.build.outputs.toc_version }}-dev-${{ github.sha }}.zip"
+        name: "Automatic Development build version ${{ steps.build.outputs.toc_version }}"
+        body: "# Warning this is a development build, use at own risk!!\n### SHA: ${{ github.sha }}\nBuild release body"
+        commit: "${{ github.sha }}"
+        tag: "dev-release"
+        prerelease: true
+        # Remove all artifacts on release
+        removeArtifacts: true
+        allowUpdates: true
