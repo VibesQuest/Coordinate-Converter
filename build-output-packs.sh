@@ -28,8 +28,8 @@ build_version() {
     --output-dir "${pack_dir}"
 }
 
-run_tests() {
-  uv run --group dev pytest -q
+run_full_tests() {
+  uv run pytest -q
 }
 
 main() {
@@ -38,16 +38,17 @@ main() {
     exit 1
   fi
 
-  run_tests
-
   if [[ $# -eq 1 ]]; then
     build_version "$1"
+    run_full_tests
     exit 0
   fi
 
   for major_version in "${DEFAULT_MAJOR_VERSIONS[@]}"; do
     build_version "${major_version}"
   done
+
+  run_full_tests
 }
 
 main "$@"
