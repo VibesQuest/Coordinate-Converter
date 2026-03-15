@@ -24,6 +24,19 @@ class ManualFixedPointOverride:
     target_y: float
 
 
+def _identity_basis_override(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+) -> ManualLegacyBasisOverride:
+    return ManualLegacyBasisOverride(
+        legacy_key=legacy_key,
+        map_id=map_id,
+        source_coord_ui_map_id=coord_ui_map_id,
+        target_coord_ui_map_id=coord_ui_map_id,
+    )
+
+
 MANUAL_LEGACY_KEY_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
     "classic": {
         7307: 1583,
@@ -258,6 +271,77 @@ MANUAL_FAKE_UI_MAP_ALIASES_BY_FLAVOR: dict[str, dict[int, int]] = {
         # UiMap DBC: Karazhan
         10118: 366,
     },
+    "mop": {
+        # Questie: Scarlet Halls - Athenaeum
+        # UiMap DBC: Scarlet Halls
+        10076: 432,
+        # Questie: Scholomance - Chamber of Summoning
+        # UiMap DBC: Scholomance
+        10077: 477,
+        # Questie: Scholomance - The Upper Study
+        # UiMap DBC: Scholomance
+        10078: 478,
+        # Questie: Scholomance - Headmaster's Study
+        # UiMap DBC: Scholomance
+        10079: 479,
+        # Questie: Guo-Lai Halls - The Hall of the Serpent
+        # UiMap DBC: Guo-Lai Halls
+        10080: 396,
+        # Questie: Greenstone Quarry Lower Quarry
+        # UiMap DBC: Greenstone Quarry
+        10081: 373,
+        # Questie: Shrine of Two Moons - The Imperial Mercantile - Top Floor
+        # UiMap DBC: Shrine of Two Moons
+        10082: 392,
+        # Questie: Shrine of Seven Stars - The Imperial Exchange - Top Floor
+        # UiMap DBC: Shrine of Seven Stars
+        10083: 394,
+        # Questie: The Deeper - Lower Deep
+        # UiMap DBC: The Deeper
+        10084: 384,
+        # Questie: Crypt of Korune - Ruins of Korune
+        # UiMap DBC: Ruins of Korune
+        10087: 387,
+        # Questie: Dalaran - Underbelly (Landfall version)
+        # UiMap DBC: Dalaran
+        10088: 502,
+        # Questie: Kaja'mine SE
+        # UiMap DBC: Kaja'mine
+        10090: 196,
+        # Questie: Kaja'mine SW
+        # UiMap DBC: Kaja'mine
+        10091: 197,
+        # Questie: Caverns of Time - Timeless Tunnel
+        # UiMap DBC: Caverns of Time
+        10092: 74,
+        # Questie: Throne of Thunder - Royal Amphitheater
+        # UiMap DBC: Throne of Thunder
+        10093: 509,
+        # Questie: Throne of Thunder - Forgotten Depths
+        # UiMap DBC: Throne of Thunder
+        10094: 510,
+        # Questie: Throne of Thunder - Roost of Ji-Kun
+        # UiMap DBC: Throne of Thunder
+        10095: 511,
+        # Questie: Throne of Thunder - Halls of Flesh-Shaping
+        # UiMap DBC: Throne of Thunder
+        10096: 512,
+        # Questie: Throne of Thunder - Hall of Kings
+        # UiMap DBC: Throne of Thunder
+        10097: 513,
+        # Questie: Throne of Thunder - Pinnacle of Storms
+        # UiMap DBC: Throne of Thunder
+        10098: 514,
+        # Questie: Throne of Thunder - Hidden Cell
+        # UiMap DBC: Throne of Thunder
+        10099: 515,
+        # Questie: Isle of Thunder - Lightning Vein Mine
+        # UiMap DBC: Lightning Vein Mine
+        10100: 505,
+        # Questie: Isle of Thunder - The Swollen Vault
+        # UiMap DBC: The Swollen Vault
+        10101: 506,
+    },
 }
 
 
@@ -305,6 +389,26 @@ MANUAL_LEGACY_BASIS_OVERRIDES_BY_FLAVOR: dict[str, dict[int, ManualLegacyBasisOv
             source_coord_ui_map_id=235,
             target_coord_ui_map_id=235,
         ),
+    },
+    "mop": {
+        # Questie: Caverns of Time
+        # UiMap DBC: Caverns of Time
+        1941: _identity_basis_override(1941, 1, 75),
+        # Questie: Kalimdor - the continent map
+        # UiMap DBC: Kalimdor
+        10073: _identity_basis_override(10073, 1, 12),
+        # Questie: Eastern Kingdoms - the continent map
+        # UiMap DBC: Eastern Kingdoms
+        10074: _identity_basis_override(10074, 0, 13),
+        # Questie: Pandaria - the continent map
+        # UiMap DBC: Pandaria
+        10075: _identity_basis_override(10075, 870, 424),
+        # Questie: Ruins of Ogudei
+        # UiMap DBC: Ruins of Ogudei
+        10085: _identity_basis_override(10085, 870, 420),
+        # Questie: Ruins of Ogudei - Reliquary Incursion
+        # UiMap DBC: Ruins of Ogudei
+        10086: _identity_basis_override(10086, 870, 421),
     },
 }
 

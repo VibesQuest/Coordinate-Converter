@@ -250,3 +250,32 @@ def test_fake_cata_floor_keys_map_to_specific_instance_ui_maps(
 
     converted = converter.convert_zone_buckets(pack, {legacy_key: [[point[0], point[1]]]})
     assert converted == {map_id: {coord_ui_map_id: [[point[0], point[1]]]}}
+
+
+@pytest.mark.parametrize(
+    ("legacy_key", "map_id", "coord_ui_map_id", "point"),
+    (
+        (1941, 1, 75, (41.77, 49.87)),
+        (10073, 1, 12, (61.23, 44.59)),
+        (10075, 870, 424, (65.31, 74.96)),
+        (10076, 1001, 432, (52.15, 48.78)),
+        (10077, 1007, 477, (34.92, 67.41)),
+        (10082, 870, 392, (60.31, 77.03)),
+        (10088, 1106, 502, (31.47, 50.12)),
+        (10092, 1, 74, (55.26, 27.93)),
+        (10100, 1064, 505, (20.77, 69.38)),
+        (10101, 1064, 506, (57.72, 59.66)),
+    ),
+)
+def test_fake_mop_floor_keys_map_to_specific_instance_ui_maps(
+    legacy_key: int,
+    map_id: int,
+    coord_ui_map_id: int,
+    point: tuple[float, float],
+    coordinate_runtimes: dict[str, dict],
+) -> None:
+    converter = coordinate_runtimes["v5"]["converter"]
+    pack = coordinate_runtimes["v5"]["pack"]
+
+    converted = converter.convert_zone_buckets(pack, {legacy_key: [[point[0], point[1]]]})
+    assert converted == {map_id: {coord_ui_map_id: [[point[0], point[1]]]}}
