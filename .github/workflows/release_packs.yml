@@ -62,7 +62,17 @@ jobs:
             echo "No output version directories found under output/" >&2
             exit 1
           fi
-          zip -r "dist/${{ steps.release_meta.outputs.zip_name }}" "${version_dirs[@]}" dist/release-metadata.json
+          package_root="dist/coordinate-converter"
+          rm -rf "${package_root}"
+          mkdir -p "${package_root}"
+          for version_dir in "${version_dirs[@]}"; do
+            cp -R "${version_dir}" "${package_root}/"
+          done
+          cp dist/release-metadata.json "${package_root}/release-metadata.json"
+          (
+            cd dist
+            zip -r "${{ steps.release_meta.outputs.zip_name }}" "coordinate-converter"
+          )
 
       - name: Publish release
         uses: ncipollo/release-action@v1
