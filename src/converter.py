@@ -255,6 +255,7 @@ class CoordinateConverter:
             )
         return record
 
+    @staticmethod
     def _is_unknown_bucket(points: Sequence[Sequence[float]] | None) -> bool:
         if not points:
             return False

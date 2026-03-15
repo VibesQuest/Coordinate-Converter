@@ -3,10 +3,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATA_DIR="${ROOT_DIR}/../sources/dbc/data"
+DATA_DIR="${ROOT_DIR}/sources/dbc/data"
 DBC_OUT_DIR="${ROOT_DIR}/dbc-output"
 PACK_OUT_DIR="${ROOT_DIR}/output"
-DEFAULT_MAJOR_VERSIONS=(1 2 3 4 5 7)
+DEFAULT_MAJOR_VERSIONS=(1 2 3 4 5)
 
 cd "${ROOT_DIR}"
 
@@ -28,11 +28,17 @@ build_version() {
     --output-dir "${pack_dir}"
 }
 
+run_tests() {
+  uv run pytest -q
+}
+
 main() {
   if [[ $# -gt 1 ]]; then
     echo "Usage: bash build-output-packs.sh [major_version]" >&2
     exit 1
   fi
+
+  run_tests
 
   if [[ $# -eq 1 ]]; then
     build_version "$1"

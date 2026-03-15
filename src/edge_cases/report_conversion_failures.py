@@ -112,7 +112,7 @@ def _collect_failures(
             try:
                 converted = converter.convert_zone_buckets(pack, zone_buckets)
                 replaced = converter.replace_unknown_instance_buckets(pack, converted)
-            except Exception as exc:
+            except (KeyError, ValueError) as exc:
                 failures.append(
                     ConversionFailure(
                         case=case,
