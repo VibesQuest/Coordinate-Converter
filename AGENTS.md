@@ -30,6 +30,17 @@ Start a new logical change after finishing a commit:
 
 jj new
 
+## Update main
+
+jj bookmark set main -r @-
+jj git push --remote origin --bookmark main
+
+## Move tag
+
+jj tag set v0.1.0 -r main --allow-move
+
+*If the tag already exists on the remote, force-push the tag update.*
+
 ## Commit messages
 
 Use **Conventional Commits**:
