@@ -242,40 +242,36 @@ function M.convert_zone_buckets(pack, zone_buckets, coord_decimals)
   local fixed_point_overrides = MANUAL_FIXED_POINT_OVERRIDES_BY_FLAVOR[tostring(pack.manifest and pack.manifest.flavor)] or {}
 
   for zone_area_id, points in pairs(zone_buckets) do
-    if apply_manual_fixed_point_override(result, fixed_point_overrides, zone_area_id, points, coord_decimals) then
-      goto continue_zone
-    end
-
-    local legacy_basis = pack.legacyBasisByKey[tonumber(zone_area_id)]
-    local zone_space = pack.zoneSpaceByAreaId[tonumber(zone_area_id)]
-    if legacy_basis == nil and zone_space == nil then
-      error(string.format("No coordinate mapping for legacy key=%s", tostring(zone_area_id)), 2)
-    end
-
-    local map_id = legacy_basis and tonumber(legacy_basis.mapId) or tonumber(zone_space.mapId)
-    local coord_ui_map_id = legacy_basis
-      and tonumber(legacy_basis.targetCoordUiMapId)
-      or target_coord_ui_map_id(pack, zone_space)
-    local bounds = coord_ui_map_id == UNKNOWN_COORD_UI_MAP_ID
-      and nil
-      or get_projection_bounds(pack, map_id, coord_ui_map_id)
-    local bucket = ensure_bucket(result, map_id, coord_ui_map_id)
-
-    for _, point in ipairs(points) do
-      if should_emit_unknown_instance_bucket(pack, zone_area_id, map_id, point) then
-        local unknown_bucket = ensure_bucket(result, map_id, UNKNOWN_COORD_UI_MAP_ID)
-        unknown_bucket[#unknown_bucket + 1] = {-1, -1}
-        goto continue_point
+    if not apply_manual_fixed_point_override(result, fixed_point_overrides, zone_area_id, points, coord_decimals) then
+      local legacy_basis = pack.legacyBasisByKey[tonumber(zone_area_id)]
+      local zone_space = pack.zoneSpaceByAreaId[tonumber(zone_area_id)]
+      if legacy_basis == nil and zone_space == nil then
+        error(string.format("No coordinate mapping for legacy key=%s", tostring(zone_area_id)), 2)
       end
-      local x, y = convert_legacy_point(pack, legacy_basis, zone_space, bounds, point)
-      local coord_pair = {round(x, coord_decimals), round(y, coord_decimals)}
-      if legacy_basis ~= nil and legacy_basis.defaultUiMapHintId ~= nil then
-        coord_pair[#coord_pair + 1] = tonumber(legacy_basis.defaultUiMapHintId)
+
+      local map_id = legacy_basis and tonumber(legacy_basis.mapId) or tonumber(zone_space.mapId)
+      local coord_ui_map_id = legacy_basis
+        and tonumber(legacy_basis.targetCoordUiMapId)
+        or target_coord_ui_map_id(pack, zone_space)
+      local bounds = coord_ui_map_id == UNKNOWN_COORD_UI_MAP_ID
+        and nil
+        or get_projection_bounds(pack, map_id, coord_ui_map_id)
+      local bucket = ensure_bucket(result, map_id, coord_ui_map_id)
+
+      for _, point in ipairs(points) do
+        if should_emit_unknown_instance_bucket(pack, zone_area_id, map_id, point) then
+          local unknown_bucket = ensure_bucket(result, map_id, UNKNOWN_COORD_UI_MAP_ID)
+          unknown_bucket[#unknown_bucket + 1] = {-1, -1}
+        else
+          local x, y = convert_legacy_point(pack, legacy_basis, zone_space, bounds, point)
+          local coord_pair = {round(x, coord_decimals), round(y, coord_decimals)}
+          if legacy_basis ~= nil and legacy_basis.defaultUiMapHintId ~= nil then
+            coord_pair[#coord_pair + 1] = tonumber(legacy_basis.defaultUiMapHintId)
+          end
+          bucket[#bucket + 1] = coord_pair
+        end
       end
-      bucket[#bucket + 1] = coord_pair
-      ::continue_point::
     end
-    ::continue_zone::
   end
 
   return result
